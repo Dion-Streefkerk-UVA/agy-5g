@@ -1,273 +1,540 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0b0c10">
-<title>Brommer Nav — 55 km/h</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Brommer Nav"/>
+<meta name="theme-color" content="#0b0d11"/>
+<title>Brommer Cockpit — 55 km/h Navigatie</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"/>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <style>
   :root {
-    --bg: #0b0c10;
-    --surface: rgba(16, 18, 24, 0.92);
-    --surface-solid: #12141c;
-    --border: rgba(255, 255, 255, 0.09);
-    --text: #f3f4f6;
-    --muted: #8b93a6;
+    --bg-glass: rgba(13, 16, 23, 0.90);
+    --bg-glass-heavy: rgba(10, 12, 18, 0.95);
+    --bg-elevated: rgba(255, 255, 255, 0.06);
+    --border-subtle: rgba(255, 255, 255, 0.11);
+    --border-strong: rgba(255, 255, 255, 0.20);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
     --accent: #3b82f6;
     --accent-bright: #60a5fa;
+    --accent-glow: rgba(59, 130, 246, 0.35);
     --green: #10b981;
+    --green-glow: rgba(16, 185, 129, 0.25);
+    --amber: #f59e0b;
+    --danger: #ef4444;
   }
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
   html, body {
-    margin: 0; padding: 0; width: 100%; height: 100dvh;
-    background: var(--bg); color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", system-ui, sans-serif;
-    overflow: hidden; user-select: none;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #0b0d11;
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
-  #map { position: absolute; inset: 0; z-index: 1; background: #0b0c10; }
-  .leaflet-container { background: #0b0c10; }
 
-  /* Top Turn-by-Turn Navigation Stack */
+  #map {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: #0b0d11;
+  }
+
+  .maplibregl-ctrl-bottom-left,
+  .maplibregl-ctrl-bottom-right,
+  .maplibregl-ctrl-top-left,
+  .maplibregl-ctrl-top-right {
+    display: none !important;
+  }
+
+  /* TOP NAVIGATION STACK */
   .top-stack {
     position: absolute;
-    top: calc(env(safe-area-inset-top, 12px) + 8px);
-    left: 12px; right: 12px;
-    z-index: 20;
+    top: max(10px, env(safe-area-inset-top));
+    left: 12px;
+    right: 12px;
+    z-index: 1000;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
     pointer-events: none;
   }
-  .nav-banner {
+  .top-stack > * {
     pointer-events: auto;
-    background: var(--surface);
+  }
+
+  /* Route & Direction Selector Bar */
+  .selector-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-glass);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 5px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  }
+
+  .dir-group {
+    display: flex;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+    padding: 2px;
+    gap: 2px;
+  }
+  .dir-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.16s ease;
+    white-space: nowrap;
+  }
+  .dir-btn.active {
+    background: var(--accent);
+    color: #ffffff;
+    box-shadow: 0 2px 10px var(--accent-glow);
+  }
+
+  .bar-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--border-subtle);
+    flex-shrink: 0;
+  }
+
+  .route-group {
+    display: flex;
+    flex: 1;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .route-group::-webkit-scrollbar { display: none; }
+
+  .route-pill {
+    flex: 1;
+    border: 1px solid transparent;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 6px 8px;
+    border-radius: 9px;
+    cursor: pointer;
+    text-align: center;
+    white-space: nowrap;
+    transition: all 0.16s ease;
+  }
+  .route-pill.active {
+    background: rgba(59, 130, 246, 0.16);
+    border-color: rgba(96, 165, 250, 0.45);
+    color: #ffffff;
+  }
+
+  /* Primary Turn-by-Turn Maneuver Card */
+  .maneuver-card {
+    background: var(--bg-glass-heavy);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--border-subtle);
     border-radius: 18px;
-    padding: 14px 16px;
+    padding: 13px 15px;
     display: flex;
     align-items: center;
     gap: 14px;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.6);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
-  .turn-box {
-    width: 54px; height: 54px;
+  .maneuver-card.imminent {
+    border-color: rgba(16, 185, 129, 0.65);
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.65), 0 0 24px rgba(16, 185, 129, 0.22);
+  }
+
+  .turn-icon-box {
+    width: 54px;
+    height: 54px;
     border-radius: 14px;
     background: rgba(59, 130, 246, 0.14);
-    border: 1px solid rgba(96, 165, 250, 0.28);
-    display: flex; align-items: center; justify-content: center;
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
     color: var(--accent-bright);
+    transition: all 0.2s ease;
   }
-  .turn-info { flex: 1; min-width: 0; }
-  .turn-dist-row {
-    display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+  .maneuver-card.imminent .turn-icon-box {
+    background: rgba(16, 185, 129, 0.18);
+    border-color: rgba(16, 185, 129, 0.55);
+    color: var(--green);
+  }
+  .turn-icon-box svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .turn-body {
+    flex: 1;
+    min-width: 0;
+  }
+  .turn-top-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
   }
   .turn-dist {
-    font-size: 26px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.05;
+    font-size: 27px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
     color: #ffffff;
     font-variant-numeric: tabular-nums;
   }
-  .gps-badge {
-    font-size: 11px; font-weight: 600; letter-spacing: 0.03em;
-    padding: 3px 8px; border-radius: 999px;
-    background: rgba(255, 255, 255, 0.06);
-    color: var(--muted);
-    border: 1px solid var(--border);
+  .turn-ActionTag {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent-bright);
+    background: rgba(59, 130, 246, 0.14);
+    padding: 3px 8px;
+    border-radius: 6px;
   }
-  .gps-badge.live {
-    background: rgba(16, 185, 129, 0.14);
-    color: #34d399;
-    border-color: rgba(16, 185, 129, 0.3);
+  .maneuver-card.imminent .turn-ActionTag {
+    color: var(--green);
+    background: rgba(16, 185, 129, 0.16);
   }
   .turn-street {
-    font-size: 15.5px; font-weight: 600; color: #e5e7eb;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    margin-top: 4px;
-  }
-  .turn-sub {
-    font-size: 12px; color: var(--muted); margin-top: 2px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font-size: 15px;
+    font-weight: 600;
+    color: #cbd5e1;
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  /* Secondary "Then" Turn Pill */
+  /* Secondary "Daarna" Preview Pill */
   .then-banner {
-    pointer-events: auto;
     align-self: flex-start;
-    background: rgba(16, 18, 24, 0.88);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 6px 12px;
     display: none;
     align-items: center;
     gap: 8px;
-    font-size: 12.5px;
-    color: #d1d5db;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
-  }
-  .then-banner.visible { display: inline-flex; }
-  .then-lbl { color: var(--muted); font-weight: 500; }
-
-  /* Route & Direction Selector Bar */
-  .top-controls {
-    pointer-events: auto;
-    display: flex; gap: 6px; overflow-x: auto;
-    scrollbar-width: none;
-    padding-bottom: 2px;
-  }
-  .top-controls::-webkit-scrollbar { display: none; }
-  .pill {
-    background: var(--surface);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid var(--border);
-    color: var(--muted);
-    padding: 7px 12px;
-    border-radius: 10px;
+    background: rgba(13, 16, 23, 0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-subtle);
+    border-radius: 11px;
+    padding: 6px 12px;
+    margin-top: -3px;
     font-size: 12px;
     font-weight: 600;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: all 0.15s ease;
+    color: var(--text-secondary);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
   }
-  .pill.active {
-    background: rgba(37, 99, 235, 0.22);
-    color: #ffffff;
-    border-color: rgba(96, 165, 250, 0.55);
+  .then-banner.visible {
+    display: inline-flex;
+  }
+  .then-banner svg {
+    width: 15px;
+    height: 15px;
+    color: var(--text-primary);
+    flex-shrink: 0;
+  }
+  .then-label {
+    color: var(--text-muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.05em;
   }
 
-  /* Floating Right Action Buttons */
+  /* Off-route alert banner */
+  .offroute-banner {
+    background: rgba(239, 68, 68, 0.94);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 14px;
+    border-radius: 12px;
+    text-align: center;
+    letter-spacing: 0.02em;
+    display: none;
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.35);
+  }
+
+  /* FLOATING MAP ACTION CONTROLS (Right Side) */
   .map-tools {
     position: absolute;
     right: 12px;
-    bottom: calc(env(safe-area-inset-bottom, 16px) + 158px);
-    z-index: 20;
+    bottom: calc(max(14px, env(safe-area-inset-bottom)) + 110px);
+    z-index: 1000;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 9px;
   }
   .tool-btn {
-    width: 44px; height: 44px;
-    border-radius: 13px;
-    background: var(--surface);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--border);
-    color: #d1d5db;
-    display: flex; align-items: center; justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: var(--bg-glass);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
     cursor: pointer;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
-    transition: all 0.15s ease;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
+    transition: all 0.16s ease;
+  }
+  .tool-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+  .tool-sub {
+    font-size: 8.5px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    line-height: 1;
+  }
+  .tool-btn:active {
+    transform: scale(0.94);
   }
   .tool-btn.active {
-    border-color: rgba(96, 165, 250, 0.6);
+    background: rgba(59, 130, 246, 0.22);
+    border-color: rgba(96, 165, 250, 0.65);
     color: var(--accent-bright);
-    background: rgba(37, 99, 235, 0.18);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45), 0 0 14px rgba(59, 130, 246, 0.28);
+  }
+  .tool-btn.active .tool-sub {
+    color: #ffffff;
   }
 
-  /* Bottom Handlebar Cockpit HUD */
+  /* Google Maps-style Floating "Centreren" Pill (Bottom Left above HUD) */
+  .recenter-pill {
+    position: absolute;
+    left: 12px;
+    bottom: calc(max(14px, env(safe-area-inset-bottom)) + 110px);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: #2563eb;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 999px;
+    padding: 11px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    box-shadow: 0 10px 28px rgba(37, 99, 235, 0.55);
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+  .recenter-pill.visible {
+    display: inline-flex;
+  }
+  .recenter-pill:active {
+    transform: scale(0.95);
+  }
+  .recenter-pill svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* BOTTOM TELEMETRY HUD */
   .bottom-hud {
     position: absolute;
-    bottom: calc(env(safe-area-inset-bottom, 12px) + 8px);
-    left: 12px; right: 12px;
-    z-index: 20;
-    background: var(--surface);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--border);
+    bottom: max(12px, env(safe-area-inset-bottom));
+    left: 12px;
+    right: 12px;
+    z-index: 1000;
+    background: var(--bg-glass-heavy);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--border-subtle);
     border-radius: 18px;
-    padding: 12px 14px 14px;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65);
     overflow: hidden;
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.65);
   }
+
   .progress-track {
-    position: absolute;
-    top: 0; left: 0; right: 0;
+    width: 100%;
     height: 3px;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.07);
   }
   .progress-fill {
     height: 100%;
     width: 0%;
     background: linear-gradient(90deg, #3b82f6, #10b981);
-    transition: width 0.3s ease;
+    transition: width 0.4s ease;
   }
+
+  .hud-main {
+    padding: 11px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .speed-cluster {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    min-width: 76px;
+  }
+  .speed-val {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: #ffffff;
+    font-variant-numeric: tabular-nums;
+  }
+  .speed-unit {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
   .metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    padding-top: 2px;
-    padding-bottom: 11px;
-    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+    justify-content: center;
+  }
+  .metric-cell {
     text-align: center;
   }
   .metric-val {
-    font-size: 21px; font-weight: 700; color: #ffffff;
-    font-variant-numeric: tabular-nums;
+    font-size: 16px;
+    font-weight: 700;
+    color: #f8fafc;
     letter-spacing: -0.02em;
-  }
-  .metric-unit {
-    font-size: 12px; font-weight: 500; color: var(--muted); margin-left: 2px;
+    font-variant-numeric: tabular-nums;
   }
   .metric-lbl {
-    font-size: 10.5px; font-weight: 600; color: var(--muted);
-    text-transform: uppercase; letter-spacing: 0.05em;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     margin-top: 2px;
   }
-  .hud-actions {
-    display: flex; gap: 8px; margin-top: 11px;
-  }
-  .btn-primary {
-    flex: 1;
-    background: #2563eb;
-    color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 11px;
-    padding: 11px 14px;
-    font-size: 13.5px;
-    font-weight: 600;
-    cursor: pointer;
-    text-align: center;
-    letter-spacing: -0.01em;
-    transition: background 0.15s ease;
-  }
-  .btn-primary.following {
-    background: #059669;
-  }
-  .btn-secondary {
-    background: rgba(255, 255, 255, 0.06);
-    color: #e5e7eb;
-    border: 1px solid var(--border);
-    border-radius: 11px;
-    padding: 11px 13px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    white-space: nowrap;
-    display: flex; align-items: center; gap: 6px;
+  .metric-sep {
+    width: 1px;
+    height: 24px;
+    background: var(--border-subtle);
   }
 
-  /* Custom GPS Navigation Puck */
-  .gps-puck-wrap {
-    width: 36px; height: 36px;
-    display: flex; align-items: center; justify-content: center;
-    filter: drop-shadow(0 3px 8px rgba(37, 99, 235, 0.65));
+  .status-cluster {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
   }
-  .turn-dot-pulse {
-    width: 14px; height: 14px;
+  .gps-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 4px 8px;
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+  }
+  .gps-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--amber);
+  }
+  .gps-badge.locked {
+    background: rgba(16, 185, 129, 0.14);
+    color: #34d399;
+  }
+  .gps-badge.locked .gps-dot {
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+  }
+  .wake-lbl {
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+  }
+
+  /* 3D Navigation Puck on Road Surface */
+  .nav-puck-wrap {
+    width: 84px;
+    height: 84px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .nav-puck-svg {
+    width: 84px;
+    height: 84px;
+    overflow: visible;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.55));
+  }
+
+  /* Next Turn Intersection Pulse Dot */
+  .turn-target-dot {
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     background: #ffffff;
-    border: 3px solid #3b82f6;
-    box-shadow: 0 0 12px rgba(59, 130, 246, 0.9);
+    border: 4px solid #3b82f6;
+    box-shadow: 0 0 14px rgba(59, 130, 246, 0.9);
+    pointer-events: none;
+  }
+
+  .endpoint-pin {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2.5px solid #ffffff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    pointer-events: none;
   }
 </style>
 </head>
@@ -276,399 +543,904 @@
 <div id="map"></div>
 
 <div class="top-stack">
-  <div class="nav-banner">
-    <div class="turn-box" id="turn-icon">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+  <div class="selector-bar">
+    <div class="dir-group">
+      <button class="dir-btn active" id="dir-heen" onclick="setDirection('heen')">HEEN</button>
+      <button class="dir-btn" id="dir-terug" onclick="setDirection('terug')">TERUG</button>
+    </div>
+    <div class="bar-divider"></div>
+    <div class="route-group">
+      <button class="route-pill active" id="rt-r1" onclick="setRoute('r1')">1. Het Lint (39,2)</button>
+      <button class="route-pill" id="rt-r2" onclick="setRoute('r2')">2. Kortst (38,2)</button>
+      <button class="route-pill" id="rt-r3" onclick="setRoute('r3')">3. Polder (40,3)</button>
+    </div>
+  </div>
+
+  <div class="maneuver-card" id="maneuver-card">
+    <div class="turn-icon-box" id="turn-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 19V5M5 12l7-7 7 7"/>
       </svg>
     </div>
-    <div class="turn-info">
-      <div class="turn-dist-row">
-        <div class="turn-dist" id="turn-dist">39,2 km</div>
-        <div class="gps-badge" id="gps-badge">STANDBY</div>
+    <div class="turn-body">
+      <div class="turn-top-row">
+        <div class="turn-dist" id="turn-dist">-- m</div>
+        <div class="turn-ActionTag" id="turn-tag">VOLG ROUTE</div>
       </div>
-      <div class="turn-street" id="turn-street">1. Het Lint & De Meernbrug</div>
-      <div class="turn-sub" id="turn-sub">Vaste 55 km/h route · geen herberekening</div>
+      <div class="turn-street" id="turn-street">Wachten op gps-signaal...</div>
     </div>
   </div>
 
   <div class="then-banner" id="then-banner">
-    <span class="then-lbl">Daarna:</span>
-    <span id="then-text">Rechtdoor</span>
+    <span class="then-label">Daarna</span>
+    <span id="then-icon"></span>
+    <span id="then-text">rechtdoor</span>
   </div>
 
-  <div class="top-controls">
-    <button class="pill active" id="dir-heen" onclick="setDir('heen')">Heen · Utrecht</button>
-    <button class="pill" id="dir-terug" onclick="setDir('terug')">Terug · Amstelveen</button>
-    <button class="pill active" id="rt-r1" onclick="setRoute('r1')">1. Het Lint (39,2)</button>
-    <button class="pill" id="rt-r2" onclick="setRoute('r2')">2. Dafne (38,2)</button>
-    <button class="pill" id="rt-r3" onclick="setRoute('r3')">3. Polder (40,3)</button>
+  <div class="offroute-banner" id="offroute-banner">
+    Van route afgeweken — blauwe lijn op kaart toont het vaste pad
   </div>
 </div>
 
+<!-- Google Maps-style Recenter / Activate 3D Navigation Pill -->
+<button class="recenter-pill visible" id="recenter-pill" onclick="engageNavigation()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <polygon points="12 2 19 21 12 17 5 21 12 2"/>
+  </svg>
+  <span id="recenter-label">Centreren &amp; Kompas</span>
+</button>
+
 <div class="map-tools">
-  <button class="tool-btn" id="btn-theme" onclick="toggleMapTheme()" aria-label="Kaartthema">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+  <!-- Compass / Course-Up vs North-Up Toggle -->
+  <button class="tool-btn active" id="btn-compass" onclick="toggleCourseUp()" title="Koers boven / Noord boven">
+    <svg id="compass-needle" viewBox="0 0 24 24" fill="none" style="transition: transform 0.08s linear;">
+      <polygon points="12,3 15.5,12 12,10.5 8.5,12" fill="#ef4444"/>
+      <polygon points="12,21 15.5,12 12,13.5 8.5,12" fill="#cbd5e1"/>
     </svg>
+    <span class="tool-sub" id="lbl-compass">3D KOERS</span>
   </button>
-  <button class="tool-btn" id="btn-center" onclick="recenterMap()" aria-label="Centreer op GPS">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+
+  <!-- Recenter on User GPS -->
+  <button class="tool-btn active" id="btn-follow" onclick="engageNavigation()" title="Centreer op gps">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="7"/>
+      <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
+      <line x1="12" y1="2" x2="12" y2="5"/>
+      <line x1="12" y1="19" x2="12" y2="22"/>
+      <line x1="2" y1="12" x2="5" y2="12"/>
+      <line x1="19" y1="12" x2="22" y2="12"/>
     </svg>
+    <span class="tool-sub">GPS</span>
   </button>
-  <button class="tool-btn" onclick="fitFullRoute()" aria-label="Volledige route">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+
+  <!-- Full Route Overview -->
+  <button class="tool-btn" id="btn-overview" onclick="fitFullRoute()" title="Hele route tonen">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15 3 21 3 21 9"/>
+      <polyline points="9 21 3 21 3 15"/>
+      <line x1="21" y1="3" x2="14" y2="10"/>
+      <line x1="3" y1="21" x2="10" y2="14"/>
     </svg>
+    <span class="tool-sub">OVERZICHT</span>
+  </button>
+
+  <!-- Day / Night Vector Style Toggle (Zero API key required) -->
+  <button class="tool-btn" id="btn-theme" onclick="toggleMapTheme()" title="Wissel Dag / Nacht kaart">
+    <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+    </svg>
+    <span class="tool-sub" id="lbl-theme">NACHT</span>
   </button>
 </div>
 
 <div class="bottom-hud">
-  <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
-  <div class="metrics-grid">
-    <div>
-      <div class="metric-val"><span id="val-speed">0</span><span class="metric-unit">km/h</span></div>
-      <div class="metric-lbl">Snelheid</div>
-    </div>
-    <div>
-      <div class="metric-val"><span id="val-rem">39,2</span><span class="metric-unit">km</span></div>
-      <div class="metric-lbl">Resterend</div>
-    </div>
-    <div>
-      <div class="metric-val" id="val-eta">~44m</div>
-      <div class="metric-lbl">Aankomst</div>
-    </div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progress-fill"></div>
   </div>
-  <div class="hud-actions">
-    <button class="btn-primary" id="btn-start" onclick="toggleTracking()">Start GPS Navigatie</button>
-    <a class="btn-secondary" id="btn-gmaps" href="#" target="_blank" rel="noopener">
-      <span>Google Maps</span>
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M7 17L17 7M7 7h10v10"/>
-      </svg>
-    </a>
+  <div class="hud-main">
+    <div class="speed-cluster">
+      <span class="speed-val" id="speed-val">0</span>
+      <span class="speed-unit">km/h</span>
+    </div>
+    <div class="metrics-grid">
+      <div class="metric-cell">
+        <div class="metric-val" id="rem-dist">-- km</div>
+        <div class="metric-lbl">Resterend</div>
+      </div>
+      <div class="metric-sep"></div>
+      <div class="metric-cell">
+        <div class="metric-val" id="rem-time">-- min</div>
+        <div class="metric-lbl">Rijtijd</div>
+      </div>
+      <div class="metric-sep"></div>
+      <div class="metric-cell">
+        <div class="metric-val" id="eta-time">--:--</div>
+        <div class="metric-lbl">Aankomst</div>
+      </div>
+    </div>
+    <div class="status-cluster">
+      <div class="gps-badge" id="gps-badge">
+        <span class="gps-dot"></span>
+        <span id="gps-text">ZOEK GPS</span>
+      </div>
+      <div class="wake-lbl" id="wake-lbl">KOMPAS + GPS</div>
+    </div>
   </div>
 </div>
 
 <script>
-let ROUTES = {};
+// 100% Free Vector GL Styles (CARTO Protomaps Vector Tiles — No API Key Required)
+const STYLE_DARK  = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
+const STYLE_LIGHT = "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json";
+
+let NAV_DATA = null;
 let curRoute = "r1";
 let curDir = "heen";
-let map, tileLayer;
-let routeBgLine, routeTraveledLine, routeAheadGlow, routeAheadLine;
-let startMarker, endMarker, turnMarker, userMarker, accuracyCircle;
-let watchId = null;
-let isFollowing = false;
 let lightTheme = false;
-let wakeLockObj = null;
-let lastHeading = 0;
 
-const params = new URLSearchParams(location.search);
-if (params.get("route") && ["r1","r2","r3"].includes(params.get("route"))) curRoute = params.get("route");
-if (params.get("dir") && ["heen","terug"].includes(params.get("dir"))) curDir = params.get("dir");
+let map = null;
+let styleReady = false;
+let userMarker = null;
+let turnMarker = null;
+let startMarker = null;
+let endMarker = null;
 
-function initMap() {
-  map = L.map("map", { zoomControl: false, attributionControl: false }).setView([52.175, 4.96], 11);
-  setTileTheme(false);
-  map.on("dragstart", () => {
-    if (isFollowing) {
-      isFollowing = false;
-      document.getElementById("btn-center").classList.remove("active");
-    }
-  });
+// Navigation & Camera State
+let followUser = true;
+let courseUp = true; // true = 3D rotating course-up like Google Maps; false = 2D north-up
+let isDragging = false;
+let isEasing = false;
+let firstFixReceived = false;
+
+// Live Sensor State ([lon, lat] for MapLibre)
+let targetLngLat = null;
+let displayLngLat = null;
+let targetHeading = 0;
+let displayHeading = 0;
+let compassHeading = null;
+let gpsHeading = null;
+let lastSpeedMps = 0;
+let compassGranted = false;
+
+// Active Route Geometry Cache
+let routeCoordsLatLon = []; // [[lat, lon], ...]
+let routeCoordsLngLat = []; // [[lon, lat], ...]
+let cumDist = [];
+let totalRouteMeters = 0;
+let currentSplitIdx = 0;
+
+const params = new URLSearchParams(window.location.search);
+if (params.get("route") && ["r1", "r2", "r3"].includes(params.get("route"))) {
+  curRoute = params.get("route");
+}
+if (params.get("dir") && ["heen", "terug"].includes(params.get("dir"))) {
+  curDir = params.get("dir");
 }
 
-function setTileTheme(light) {
-  lightTheme = light;
-  if (tileLayer) map.removeLayer(tileLayer);
-  const url = light
-    ? "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-    : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
-  tileLayer = L.tileLayer(url, { maxZoom: 20 }).addTo(map);
-  document.getElementById("btn-theme").classList.toggle("active", light);
-}
+function toRad(d) { return d * Math.PI / 180; }
+function toDeg(r) { return r * 180 / Math.PI; }
 
-function toggleMapTheme() { setTileTheme(!lightTheme); }
-
-function getTurnSvg(mod, type) {
-  if (type === "roundabout" || type === "rotary") {
-    return `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"/><path d="M12 6V2m0 0l3 3m-3-3L9 5"/></svg>`;
-  }
-  if (mod && mod.includes("left")) {
-    return `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 19v-7a4 4 0 0 0-4-4H6m0 0l4-4M6 8l4 4"/></svg>`;
-  }
-  if (mod && mod.includes("right")) {
-    return `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 19v-7a4 4 0 0 1 4-4h8m0 0l-4-4m4 4l-4 4"/></svg>`;
-  }
-  return `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>`;
-}
-
-function modToDutch(mod, type) {
-  if (type === "roundabout" || type === "rotary") return "Rotonde naar";
-  if (!mod) return "Volg";
-  if (mod === "left" || mod === "sharp left") return "Linksaf naar";
-  if (mod === "slight left") return "Links aanhouden op";
-  if (mod === "right" || mod === "sharp right") return "Rechtsaf naar";
-  if (mod === "slight right") return "Rechts aanhouden op";
-  return "Rechtdoor op";
-}
-
-function createPuckIcon(deg) {
-  return L.divIcon({
-    className: "",
-    iconSize: [36, 36],
-    iconAnchor: [18, 18],
-    html: `<div class="gps-puck-wrap" style="transform: rotate(${deg}deg);">
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-        <circle cx="16" cy="16" r="14" fill="#2563eb" stroke="#ffffff" stroke-width="2.5"/>
-        <path d="M16 7l5.5 14-5.5-3.2L10.5 21 16 7z" fill="#ffffff"/>
-      </svg>
-    </div>`
-  });
-}
-
-function renderActiveRoute(fit = true) {
-  const r = ROUTES[curRoute];
-  if (!r) return;
-  const data = r[curDir];
-  if (!data) return;
-
-  ["r1","r2","r3"].forEach(k => document.getElementById("rt-" + k).classList.toggle("active", k === curRoute));
-  ["heen","terug"].forEach(d => document.getElementById("dir-" + d).classList.toggle("active", d === curDir));
-  document.getElementById("btn-gmaps").href = curDir === "heen" ? r.gmaps_heen : r.gmaps_terug;
-
-  [routeBgLine, routeTraveledLine, routeAheadGlow, routeAheadLine, startMarker, endMarker, turnMarker].forEach(l => {
-    if (l) map.removeLayer(l);
-  });
-
-  routeTraveledLine = L.polyline([], { color: "#475569", weight: 5, opacity: 0.7, lineCap: "round" }).addTo(map);
-  routeAheadGlow = L.polyline(data.coords, { color: r.color, weight: 12, opacity: 0.24, lineCap: "round", lineJoin: "round" }).addTo(map);
-  routeAheadLine = L.polyline(data.coords, { color: r.color, weight: 5.5, opacity: 0.98, lineCap: "round", lineJoin: "round" }).addTo(map);
-
-  const firstPt = data.coords[0];
-  const lastPt = data.coords[data.coords.length - 1];
-  startMarker = L.circleMarker(firstPt, { radius: 6, color: "#ffffff", weight: 2, fillColor: "#10b981", fillOpacity: 1 }).addTo(map);
-  endMarker = L.circleMarker(lastPt, { radius: 7, color: "#ffffff", weight: 2.5, fillColor: "#ef4444", fillOpacity: 1 }).addTo(map);
-
-  const distKm = data.distance_km;
-  const mins = Math.round((distKm / 55.0) * 60 + 2);
-  document.getElementById("val-rem").textContent = distKm.toFixed(1).replace(".", ",");
-  document.getElementById("val-eta").textContent = "~" + mins + "m";
-  document.getElementById("progress-fill").style.width = "0%";
-
-  if (!watchId && data.steps && data.steps.length > 1) {
-    const s = data.steps[1];
-    document.getElementById("turn-dist").textContent = distKm.toFixed(1).replace(".", ",") + " km";
-    document.getElementById("turn-street").textContent = r.title;
-    document.getElementById("turn-sub").textContent = (curDir === "heen" ? "Amstelveen → Utrecht" : "Utrecht → Amstelveen") + " · Start via " + s.name;
-    document.getElementById("then-banner").classList.remove("visible");
-  }
-
-  if (fit) map.fitBounds(routeAheadLine.getBounds(), { padding: [140, 32] });
-}
-
-function setRoute(id) { curRoute = id; renderActiveRoute(!isFollowing); }
-function setDir(dir) { curDir = dir; renderActiveRoute(!isFollowing); }
-function fitFullRoute() {
-  isFollowing = false;
-  document.getElementById("btn-center").classList.remove("active");
-  if (routeAheadLine) map.fitBounds(routeAheadLine.getBounds(), { padding: [140, 32] });
-}
-
-function recenterMap() {
-  isFollowing = true;
-  document.getElementById("btn-center").classList.add("active");
-  if (userMarker) {
-    map.setView(userMarker.getLatLng(), 16, { animate: true });
-  }
-}
-
-function haversineMeters(lat1, lon1, lat2, lon2) {
+function haversine(lat1, lon1, lat2, lon2) {
   const R = 6371000;
-  const toRad = Math.PI / 180;
-  const dLat = (lat2 - lat1) * toRad;
-  const dLon = (lon2 - lon1) * toRad;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*toRad)*Math.cos(lat2*toRad)*Math.sin(dLon/2)**2;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
   return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function bearingDeg(lat1, lon1, lat2, lon2) {
-  const toRad = Math.PI / 180;
-  const toDeg = 180 / Math.PI;
-  const dLon = (lon2 - lon1) * toRad;
-  const y = Math.sin(dLon) * Math.cos(lat2 * toRad);
-  const x = Math.cos(lat1 * toRad) * Math.sin(lat2 * toRad) - Math.sin(lat1 * toRad) * Math.cos(lat2 * toRad) * Math.cos(dLon);
-  return (Math.atan2(y, x) * toDeg + 360) % 360;
+function calcBearing(lat1, lon1, lat2, lon2) {
+  const y = Math.sin(toRad(lon2 - lon1)) * Math.cos(toRad(lat2));
+  const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
+            Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(toRad(lon2 - lon1));
+  return (toDeg(Math.atan2(y, x)) + 360) % 360;
 }
 
-function fmtMeters(m) {
-  if (m < 950) return Math.max(5, Math.round(m / 5) * 5) + " m";
-  return (m / 1000).toFixed(1).replace(".", ",") + " km";
+// Shortest-arc angular interpolation (handles 359° -> 1° wraparound smoothly)
+function angleDiff(from, to) {
+  return ((to - from + 540) % 360) - 180;
+}
+function lerpAngle(from, to, t) {
+  return (from + angleDiff(from, to) * t + 360) % 360;
 }
 
-async function requestWakeLock() {
-  try {
-    if ("wakeLock" in navigator) {
-      wakeLockObj = await navigator.wakeLock.request("screen");
+function createPuckElement() {
+  const wrap = document.createElement("div");
+  wrap.className = "nav-puck-wrap";
+  wrap.innerHTML = `
+    <svg class="nav-puck-svg" viewBox="0 0 84 84">
+      <defs>
+        <radialGradient id="beamGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.50"/>
+          <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <!-- Forward radar cone pointing UP (0 deg) -->
+      <path d="M42 42 L16 6 A40 40 0 0 1 68 6 Z" fill="url(#beamGrad)"/>
+      <!-- Outer halo -->
+      <circle cx="42" cy="42" r="18" fill="rgba(59, 130, 246, 0.25)"/>
+      <!-- White shield + Blue directional navigation chevron -->
+      <circle cx="42" cy="42" r="14" fill="#ffffff"/>
+      <path d="M42 31 L50 49 L42 44.5 L34 49 Z" fill="#2563eb"/>
+    </svg>`;
+  return wrap;
+}
+
+function initMap() {
+  map = new maplibregl.Map({
+    container: "map",
+    style: STYLE_DARK,
+    center: [4.96, 52.175],
+    zoom: 10.8,
+    pitch: 0,
+    bearing: 0,
+    attributionControl: false,
+    dragRotate: true,
+    touchPitch: true,
+    maxPitch: 65
+  });
+
+  map.on("style.load", () => {
+    styleReady = true;
+    ensureRouteLayers();
+    updateRouteGeoJSON();
+  });
+
+  // Detect manual user pan/pinch to pause auto-follow and show "Centreren" pill
+  const onUserGestureStart = (e) => {
+    if (e && e.originalEvent) {
+      isDragging = true;
+      followUser = false;
+      updateControlStates();
     }
-  } catch (e) {}
+  };
+  const onUserGestureEnd = () => {
+    isDragging = false;
+  };
+
+  map.on("dragstart", onUserGestureStart);
+  map.on("rotatestart", onUserGestureStart);
+  map.on("pitchstart", onUserGestureStart);
+  map.on("dragend", onUserGestureEnd);
+  map.on("rotateend", onUserGestureEnd);
+  map.on("pitchend", onUserGestureEnd);
+
+  map.on("rotate", () => {
+    const needle = document.getElementById("compass-needle");
+    if (needle) {
+      needle.style.transform = `rotate(${-map.getBearing()}deg)`;
+    }
+  });
+
+  // Unlock iOS Compass + Screen Wake Lock on the very first touch anywhere
+  document.addEventListener("click", () => {
+    requestCompassPermission();
+    requestWakeLock();
+  }, { once: true });
+
+  fetch("nav_routes.json?v=3")
+    .then(r => r.json())
+    .then(data => {
+      NAV_DATA = data;
+      renderSelectedRoute(true);
+      startGpsTracking();
+      initCompassListener();
+      requestAnimationFrame(cameraLoop);
+    });
 }
 
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && watchId !== null) {
-    requestWakeLock();
-  }
-});
+function ensureRouteLayers() {
+  if (!map || !styleReady) return;
 
-function toggleTracking() {
-  const btn = document.getElementById("btn-start");
-  const badge = document.getElementById("gps-badge");
-  if (watchId !== null) {
-    navigator.geolocation.clearWatch(watchId);
-    watchId = null;
-    isFollowing = false;
-    btn.textContent = "Start GPS Navigatie";
-    btn.classList.remove("following");
-    badge.textContent = "STANDBY";
-    badge.classList.remove("live");
+  if (!map.getSource("route-traveled")) {
+    map.addSource("route-traveled", {
+      type: "geojson",
+      data: { type: "Feature", geometry: { type: "LineString", coordinates: [] } }
+    });
+  }
+  if (!map.getSource("route-ahead")) {
+    map.addSource("route-ahead", {
+      type: "geojson",
+      data: { type: "Feature", geometry: { type: "LineString", coordinates: [] } }
+    });
+  }
+
+  if (!map.getLayer("route-traveled-line")) {
+    map.addLayer({
+      id: "route-traveled-line",
+      type: "line",
+      source: "route-traveled",
+      layout: { "line-join": "round", "line-cap": "round" },
+      paint: {
+        "line-color": "#64748b",
+        "line-width": 6,
+        "line-opacity": 0.55
+      }
+    });
+  }
+
+  if (!map.getLayer("route-ahead-glow")) {
+    map.addLayer({
+      id: "route-ahead-glow",
+      type: "line",
+      source: "route-ahead",
+      layout: { "line-join": "round", "line-cap": "round" },
+      paint: {
+        "line-color": "#3b82f6",
+        "line-width": 16,
+        "line-opacity": 0.26,
+        "line-blur": 4
+      }
+    });
+  }
+
+  if (!map.getLayer("route-ahead-casing")) {
+    map.addLayer({
+      id: "route-ahead-casing",
+      type: "line",
+      source: "route-ahead",
+      layout: { "line-join": "round", "line-cap": "round" },
+      paint: {
+        "line-color": "#1d4ed8",
+        "line-width": 9,
+        "line-opacity": 0.95
+      }
+    });
+  }
+
+  if (!map.getLayer("route-ahead-core")) {
+    map.addLayer({
+      id: "route-ahead-core",
+      type: "line",
+      source: "route-ahead",
+      layout: { "line-join": "round", "line-cap": "round" },
+      paint: {
+        "line-color": "#60a5fa",
+        "line-width": 5.5,
+        "line-opacity": 1.0
+      }
+    });
+  }
+}
+
+function updateRouteGeoJSON() {
+  if (!map || !styleReady || !routeCoordsLngLat.length) return;
+  ensureRouteLayers();
+
+  const split = Math.max(0, Math.min(currentSplitIdx, routeCoordsLngLat.length - 1));
+  const traveledCoords = routeCoordsLngLat.slice(0, split + 1);
+  const aheadCoords = routeCoordsLngLat.slice(split);
+
+  const srcTraveled = map.getSource("route-traveled");
+  if (srcTraveled) {
+    srcTraveled.setData({
+      type: "Feature",
+      geometry: {
+        type: "LineString",
+        coordinates: traveledCoords.length >= 2 ? traveledCoords : [routeCoordsLngLat[0], routeCoordsLngLat[0]]
+      }
+    });
+  }
+
+  const srcAhead = map.getSource("route-ahead");
+  if (srcAhead) {
+    srcAhead.setData({
+      type: "Feature",
+      geometry: {
+        type: "LineString",
+        coordinates: aheadCoords.length >= 2 ? aheadCoords : routeCoordsLngLat
+      }
+    });
+  }
+}
+
+function setDirection(dir) {
+  curDir = dir;
+  document.getElementById("dir-heen").classList.toggle("active", dir === "heen");
+  document.getElementById("dir-terug").classList.toggle("active", dir === "terug");
+  renderSelectedRoute(!targetLngLat);
+}
+
+function setRoute(rKey) {
+  curRoute = rKey;
+  ["r1", "r2", "r3"].forEach(k => {
+    document.getElementById("rt-" + k).classList.toggle("active", k === rKey);
+  });
+  renderSelectedRoute(!targetLngLat);
+}
+
+function renderSelectedRoute(fitBoundsIfNoGps) {
+  if (!NAV_DATA) return;
+  const rData = NAV_DATA[curRoute][curDir];
+  routeCoordsLatLon = rData.coords;
+  routeCoordsLngLat = routeCoordsLatLon.map(c => [c[1], c[0]]);
+  currentSplitIdx = 0;
+
+  cumDist = new Array(routeCoordsLatLon.length).fill(0);
+  for (let i = 1; i < routeCoordsLatLon.length; i++) {
+    cumDist[i] = cumDist[i - 1] + haversine(
+      routeCoordsLatLon[i - 1][0], routeCoordsLatLon[i - 1][1],
+      routeCoordsLatLon[i][0], routeCoordsLatLon[i][1]
+    );
+  }
+  totalRouteMeters = cumDist[cumDist.length - 1] || rData.distance_m;
+
+  // Set default initial heading along start of route
+  if (routeCoordsLatLon.length > 5 && compassHeading === null && gpsHeading === null) {
+    targetHeading = calcBearing(
+      routeCoordsLatLon[0][0], routeCoordsLatLon[0][1],
+      routeCoordsLatLon[5][0], routeCoordsLatLon[5][1]
+    );
+    displayHeading = targetHeading;
+  }
+
+  updateRouteGeoJSON();
+
+  // Start & End Endpoint Pins
+  if (startMarker) startMarker.remove();
+  if (endMarker) endMarker.remove();
+
+  const startEl = document.createElement("div");
+  startEl.className = "endpoint-pin";
+  startEl.style.background = "#10b981";
+  startMarker = new maplibregl.Marker({ element: startEl })
+    .setLngLat(routeCoordsLngLat[0])
+    .addTo(map);
+
+  const endEl = document.createElement("div");
+  endEl.className = "endpoint-pin";
+  endEl.style.background = "#ef4444";
+  endMarker = new maplibregl.Marker({ element: endEl })
+    .setLngLat(routeCoordsLngLat[routeCoordsLngLat.length - 1])
+    .addTo(map);
+
+  if (fitBoundsIfNoGps && !targetLngLat) {
+    fitFullRoute(false);
+  }
+
+  updateHudStatic(rData);
+  if (targetLngLat) {
+    processLocationUpdate(targetLngLat[1], targetLngLat[0], lastSpeedMps, gpsHeading);
+  }
+}
+
+function fitFullRoute(disableFollow = true) {
+  if (!routeCoordsLngLat.length) return;
+  if (disableFollow) {
+    followUser = false;
+    updateControlStates();
+  }
+  const bounds = new maplibregl.LngLatBounds(routeCoordsLngLat[0], routeCoordsLngLat[0]);
+  for (const pt of routeCoordsLngLat) bounds.extend(pt);
+  isEasing = true;
+  map.fitBounds(bounds, {
+    padding: { top: 195, bottom: 120, left: 36, right: 72 },
+    pitch: 0,
+    bearing: 0,
+    duration: 700
+  });
+  setTimeout(() => { isEasing = false; }, 720);
+}
+
+// Engage Google Maps-style 3D Follow + Hardware Compass
+function engageNavigation() {
+  requestCompassPermission();
+  requestWakeLock();
+  followUser = true;
+  updateControlStates();
+
+  if (targetLngLat) {
+    isEasing = true;
+    map.easeTo({
+      center: targetLngLat,
+      zoom: 16.8,
+      pitch: courseUp ? 55 : 0,
+      bearing: courseUp ? displayHeading : 0,
+      padding: { top: 210, bottom: 140, left: 0, right: 0 },
+      duration: 650
+    });
+    setTimeout(() => { isEasing = false; }, 680);
+  } else if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(onGpsPos, onGpsErr, {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 8000
+    });
+  }
+}
+
+function toggleCourseUp() {
+  requestCompassPermission();
+  courseUp = !courseUp;
+  followUser = true;
+  updateControlStates();
+
+  if (targetLngLat) {
+    isEasing = true;
+    map.easeTo({
+      center: targetLngLat,
+      zoom: courseUp ? 16.8 : 15.5,
+      pitch: courseUp ? 55 : 0,
+      bearing: courseUp ? displayHeading : 0,
+      padding: courseUp ? { top: 210, bottom: 140, left: 0, right: 0 } : { top: 140, bottom: 110, left: 0, right: 0 },
+      duration: 550
+    });
+    setTimeout(() => { isEasing = false; }, 580);
+  }
+}
+
+function toggleMapTheme() {
+  lightTheme = !lightTheme;
+  styleReady = false;
+  map.setStyle(lightTheme ? STYLE_LIGHT : STYLE_DARK);
+  document.getElementById("btn-theme").classList.toggle("active", lightTheme);
+  document.getElementById("lbl-theme").textContent = lightTheme ? "DAG" : "NACHT";
+}
+
+function updateControlStates() {
+  document.getElementById("btn-follow").classList.toggle("active", followUser);
+  document.getElementById("btn-compass").classList.toggle("active", courseUp);
+  document.getElementById("lbl-compass").textContent = courseUp ? "3D KOERS" : "2D NOORD";
+
+  const pill = document.getElementById("recenter-pill");
+  const label = document.getElementById("recenter-label");
+  if (!followUser) {
+    pill.classList.add("visible");
+    label.textContent = "Centreren";
+  } else if (!compassGranted && typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function") {
+    pill.classList.add("visible");
+    label.textContent = "Activeer Kompas (3D)";
+  } else {
+    pill.classList.remove("visible");
+  }
+}
+
+// iOS Hardware Magnetometer Compass Integration
+function requestCompassPermission() {
+  if (compassGranted) return;
+  if (typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function") {
+    DeviceOrientationEvent.requestPermission()
+      .then(state => {
+        if (state === "granted") {
+          compassGranted = true;
+          window.addEventListener("deviceorientation", onDeviceOrientation, true);
+          updateControlStates();
+        }
+      })
+      .catch(() => {});
+  } else {
+    compassGranted = true;
+    updateControlStates();
+  }
+}
+
+function initCompassListener() {
+  if (typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission !== "function") {
+    compassGranted = true;
+    window.addEventListener("deviceorientationabsolute", onDeviceOrientation, true);
+    window.addEventListener("deviceorientation", onDeviceOrientation, true);
+  }
+  updateControlStates();
+}
+
+function onDeviceOrientation(e) {
+  let hdg = null;
+  if (typeof e.webkitCompassHeading === "number" && !isNaN(e.webkitCompassHeading)) {
+    // iOS true/magnetic north heading in degrees (0 = North, 90 = East)
+    hdg = e.webkitCompassHeading;
+  } else if (e.absolute === true && typeof e.alpha === "number") {
+    hdg = (360 - e.alpha) % 360;
+  }
+  if (hdg === null) return;
+
+  compassHeading = (hdg + 360) % 360;
+  compassGranted = true;
+
+  // Sensor Fusion:
+  // - Below 8 km/h (2.2 m/s) or when GPS course is unavailable, follow the phone's compass directly
+  // - Above 8 km/h, blend 75% GPS movement course + 25% compass for rock-steady road tracking
+  if (lastSpeedMps < 2.2 || gpsHeading === null) {
+    targetHeading = compassHeading;
+  } else {
+    targetHeading = lerpAngle(compassHeading, gpsHeading, 0.75);
+  }
+}
+
+// 60 FPS Smooth Camera & Navigation Puck Loop
+function cameraLoop() {
+  if (targetLngLat) {
+    if (!displayLngLat) {
+      displayLngLat = [targetLngLat[0], targetLngLat[1]];
+    } else {
+      displayLngLat[0] += (targetLngLat[0] - displayLngLat[0]) * 0.16;
+      displayLngLat[1] += (targetLngLat[1] - displayLngLat[1]) * 0.16;
+    }
+
+    displayHeading = lerpAngle(displayHeading, targetHeading, 0.18);
+
+    if (userMarker) {
+      userMarker.setLngLat(displayLngLat);
+      userMarker.setRotation(displayHeading);
+    }
+
+    if (followUser && !isDragging && !isEasing && firstFixReceived) {
+      map.jumpTo({
+        center: displayLngLat,
+        bearing: courseUp ? displayHeading : 0,
+        pitch: courseUp ? 55 : 0
+      });
+    }
+  }
+  requestAnimationFrame(cameraLoop);
+}
+
+function updateHudStatic(rData) {
+  const remKm = (rData.distance_m / 1000).toFixed(1).replace(".", ",");
+  const mins = Math.round((rData.distance_m / 1000) / 51.5 * 60);
+  document.getElementById("rem-dist").textContent = remKm + " km";
+  document.getElementById("rem-time").textContent = mins + " min";
+  const eta = new Date(Date.now() + mins * 60000);
+  document.getElementById("eta-time").textContent =
+    String(eta.getHours()).padStart(2, "0") + ":" + String(eta.getMinutes()).padStart(2, "0");
+
+  if (rData.steps.length > 0) {
+    setManeuverUI(rData.steps[0], rData.steps[1] || null, 0, 0);
+  }
+}
+
+function getTurnSvg(mod, type, size = 32) {
+  let path = `<path d="M12 19V5M5 12l7-7 7 7"/>`;
+  if (type === "arrive") {
+    path = `<circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z"/>`;
+  } else if (type === "roundabout" || type === "rotary") {
+    path = `<circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 16v6M16 12h6"/>`;
+  } else if (mod.includes("left")) {
+    path = mod.includes("slight")
+      ? `<path d="M17 19V9l-7-5"/><path d="M10 9V4h5"/>`
+      : `<path d="M18 19v-7a3 3 0 0 0-3-3H5"/><path d="M9 5 5 9l4 4"/>`;
+  } else if (mod.includes("right")) {
+    path = mod.includes("slight")
+      ? `<path d="M7 19V9l7-5"/><path d="M14 9V4H9"/>`
+      : `<path d="M6 19v-7a3 3 0 0 1 3-3h10"/><path d="m15 5 4 4-4 4"/>`;
+  }
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+}
+
+function getActionTag(step) {
+  const mod = step.mod || "";
+  const type = step.type || "";
+  if (type === "arrive") return "BESTEMMING";
+  if (type === "roundabout" || type === "rotary") return "ROTONDE";
+  if (mod === "sharp left") return "SCHERP LINKS";
+  if (mod === "left") return "LINKSAAF";
+  if (mod === "slight left") return "LINKS AANHOUDEN";
+  if (mod === "sharp right") return "SCHERP RECHTS";
+  if (mod === "right") return "RECHTSAF";
+  if (mod === "slight right") return "RECHTS AANHOUDEN";
+  return "RECHTDOOR";
+}
+
+function formatDist(m) {
+  if (m >= 1000) return (m / 1000).toFixed(1).replace(".", ",") + " km";
+  if (m >= 100) return Math.round(m / 10) * 10 + " m";
+  return Math.max(5, Math.round(m / 5) * 5) + " m";
+}
+
+function setManeuverUI(step, nextStep, distToStep, gapToNext) {
+  document.getElementById("turn-dist").textContent = formatDist(distToStep);
+  document.getElementById("turn-tag").textContent = getActionTag(step);
+  document.getElementById("turn-street").textContent = step.text + (step.name ? " — " + step.name : "");
+  document.getElementById("turn-icon").innerHTML = getTurnSvg(step.mod || "", step.type || "", 32);
+
+  const card = document.getElementById("maneuver-card");
+  card.classList.toggle("imminent", distToStep <= 140);
+
+  const thenBanner = document.getElementById("then-banner");
+  if (nextStep && distToStep <= 500 && gapToNext <= 450) {
+    thenBanner.classList.add("visible");
+    document.getElementById("then-icon").innerHTML = getTurnSvg(nextStep.mod || "", nextStep.type || "", 15);
+    document.getElementById("then-text").textContent =
+      nextStep.text.toLowerCase() + (nextStep.name ? " (" + nextStep.name + ")" : "");
+  } else {
+    thenBanner.classList.remove("visible");
+  }
+}
+
+function startGpsTracking() {
+  if (!navigator.geolocation) {
+    document.getElementById("gps-text").textContent = "GEEN GPS";
     return;
   }
-  requestWakeLock();
-  isFollowing = true;
-  document.getElementById("btn-center").classList.add("active");
-  btn.textContent = "Actieve Navigatie (Scherm Aan)";
-  btn.classList.add("following");
-  badge.textContent = "GPS LIVE";
-  badge.classList.add("live");
-
-  watchId = navigator.geolocation.watchPosition(onGpsUpdate, () => {
-    document.getElementById("turn-sub").textContent = "Geef locatie-toegang in Safari voor live GPS";
-  }, {
+  navigator.geolocation.watchPosition(onGpsPos, onGpsErr, {
     enableHighAccuracy: true,
-    maximumAge: 0,
+    maximumAge: 1000,
     timeout: 10000
   });
 }
 
-function onGpsUpdate(pos) {
+function onGpsPos(pos) {
   const lat = pos.coords.latitude;
   const lon = pos.coords.longitude;
-  const acc = pos.coords.accuracy || 10;
-  const spdMs = pos.coords.speed;
-  const kmh = (spdMs !== null && spdMs >= 0) ? Math.round(spdMs * 3.6) : 0;
-  document.getElementById("val-speed").textContent = String(kmh);
+  const spdMps = pos.coords.speed || 0;
+  const hdg = pos.coords.heading;
 
-  const r = ROUTES[curRoute];
-  if (!r) return;
-  const data = r[curDir];
-  if (!data || !data.coords.length) return;
+  lastSpeedMps = spdMps;
+  if (hdg !== null && !isNaN(hdg) && spdMps >= 1.8) {
+    gpsHeading = hdg;
+  }
 
-  // Closest vertex on route
+  processLocationUpdate(lat, lon, spdMps, gpsHeading);
+}
+
+function processLocationUpdate(lat, lon, spdMps, hdg) {
+  const badge = document.getElementById("gps-badge");
+  badge.classList.add("locked");
+  document.getElementById("gps-text").textContent = "GPS ACTIEF";
+
+  const kmh = Math.max(0, Math.round(spdMps * 3.6));
+  document.getElementById("speed-val").textContent = kmh;
+
+  targetLngLat = [lon, lat];
+
+  if (!userMarker && map) {
+    const el = createPuckElement();
+    userMarker = new maplibregl.Marker({
+      element: el,
+      rotationAlignment: "map",
+      pitchAlignment: "map"
+    })
+      .setLngLat([lon, lat])
+      .setRotation(displayHeading)
+      .addTo(map);
+  }
+
+  // Auto-select Heen or Terug on first GPS fix if within 2 km of start
+  if (!firstFixReceived && NAV_DATA && !params.get("dir")) {
+    const dHome = haversine(lat, lon, 52.28640, 4.82693);
+    const dWork = haversine(lat, lon, 52.06365, 5.10798);
+    if (dWork < 2000 && curDir !== "terug") {
+      setDirection("terug");
+    } else if (dHome < 2000 && curDir !== "heen") {
+      setDirection("heen");
+    }
+  }
+
+  if (!NAV_DATA || !routeCoordsLatLon.length) return;
+  const rData = NAV_DATA[curRoute][curDir];
+
+  // Snap to closest vertex on route
   let bestIdx = 0;
   let bestDist = Infinity;
-  for (let i = 0; i < data.coords.length; i++) {
-    const d = haversineMeters(lat, lon, data.coords[i][0], data.coords[i][1]);
-    if (d < bestDist) { bestDist = d; bestIdx = i; }
+  for (let i = 0; i < routeCoordsLatLon.length; i++) {
+    const d = haversine(lat, lon, routeCoordsLatLon[i][0], routeCoordsLatLon[i][1]);
+    if (d < bestDist) {
+      bestDist = d;
+      bestIdx = i;
+    }
   }
 
-  // Compute heading from GPS or route tangent
-  if (pos.coords.heading !== null && !isNaN(pos.coords.heading) && pos.coords.heading >= 0 && kmh > 4) {
-    lastHeading = pos.coords.heading;
-  } else if (bestIdx < data.coords.length - 1) {
-    lastHeading = bearingDeg(data.coords[bestIdx][0], data.coords[bestIdx][1], data.coords[bestIdx+1][0], data.coords[bestIdx+1][1]);
+  currentSplitIdx = bestIdx;
+  updateRouteGeoJSON();
+
+  // Heading fusion fallback if neither compass nor GPS course is active yet
+  if (hdg !== null && !isNaN(hdg) && spdMps >= 2.2) {
+    targetHeading = compassHeading !== null ? lerpAngle(compassHeading, hdg, 0.75) : hdg;
+  } else if (compassHeading !== null) {
+    targetHeading = compassHeading;
+  } else if (bestIdx < routeCoordsLatLon.length - 2) {
+    const nextIdx = Math.min(routeCoordsLatLon.length - 1, bestIdx + 3);
+    targetHeading = calcBearing(
+      routeCoordsLatLon[bestIdx][0], routeCoordsLatLon[bestIdx][1],
+      routeCoordsLatLon[nextIdx][0], routeCoordsLatLon[nextIdx][1]
+    );
   }
 
-  const latlng = [lat, lon];
-  if (!userMarker) {
-    accuracyCircle = L.circle(latlng, { radius: acc, color: "#3b82f6", weight: 1, fillOpacity: 0.1 }).addTo(map);
-    userMarker = L.marker(latlng, { icon: createPuckIcon(lastHeading), zIndexOffset: 1000 }).addTo(map);
-  } else {
-    userMarker.setLatLng(latlng);
-    userMarker.setIcon(createPuckIcon(lastHeading));
-    accuracyCircle.setLatLng(latlng);
-    accuracyCircle.setRadius(Math.min(acc, 80));
+  // On very first GPS fix, smoothly fly into 3D Course-Up view centered on the user
+  if (!firstFixReceived && map) {
+    firstFixReceived = true;
+    displayLngLat = [lon, lat];
+    displayHeading = targetHeading;
+    if (followUser) {
+      isEasing = true;
+      map.easeTo({
+        center: [lon, lat],
+        zoom: 16.8,
+        pitch: courseUp ? 55 : 0,
+        bearing: courseUp ? displayHeading : 0,
+        padding: { top: 210, bottom: 140, left: 0, right: 0 },
+        duration: 850
+      });
+      setTimeout(() => { isEasing = false; }, 880);
+    }
+    updateControlStates();
   }
 
-  // Split polyline into traveled vs ahead
-  const traveledCoords = data.coords.slice(0, bestIdx + 1);
-  const aheadCoords = data.coords.slice(bestIdx);
-  routeTraveledLine.setLatLngs(traveledCoords);
-  routeAheadGlow.setLatLngs(aheadCoords);
-  routeAheadLine.setLatLngs(aheadCoords);
+  // Off-route warning if > 95m from locked path
+  document.getElementById("offroute-banner").style.display = bestDist > 95 ? "block" : "none";
 
-  if (isFollowing) {
-    map.setView(latlng, Math.max(map.getZoom(), 16), { animate: true });
-  }
-
-  // Remaining distance along locked route
-  let remMeters = 0;
-  for (let i = bestIdx; i < data.coords.length - 1; i++) {
-    remMeters += haversineMeters(data.coords[i][0], data.coords[i][1], data.coords[i+1][0], data.coords[i+1][1]);
-  }
-  const remKm = remMeters / 1000.0;
-  document.getElementById("val-rem").textContent = remKm.toFixed(1).replace(".", ",");
-
-  const totalMeters = data.distance_km * 1000;
-  const pct = Math.min(100, Math.max(0, ((totalMeters - remMeters) / totalMeters) * 100));
+  // Remaining distance, ETA & progress bar
+  const traveledM = cumDist[bestIdx] || 0;
+  const remMeters = Math.max(0, totalRouteMeters - traveledM);
+  const pct = Math.min(100, Math.max(0, (traveledM / Math.max(1, totalRouteMeters)) * 100));
   document.getElementById("progress-fill").style.width = pct.toFixed(1) + "%";
 
-  const effSpeed = kmh > 18 ? kmh : 52;
-  const remMins = Math.max(1, Math.round((remKm / effSpeed) * 60));
-  const etaDate = new Date(Date.now() + remMins * 60000);
-  const hh = String(etaDate.getHours()).padStart(2, "0");
-  const mm = String(etaDate.getMinutes()).padStart(2, "0");
-  document.getElementById("val-eta").textContent = `${hh}:${mm}`;
+  const remKm = (remMeters / 1000).toFixed(1).replace(".", ",");
+  const effSpeedKmh = kmh > 18 ? Math.min(56, Math.max(25, kmh * 0.92)) : 51.5;
+  const remMins = Math.max(1, Math.round((remMeters / 1000) / effSpeedKmh * 60));
 
-  // Next turn step & secondary "Then" step
-  const traveledMeters = Math.max(0, totalMeters - remMeters);
-  let nextIdx = data.steps.length - 1;
-  for (let i = 0; i < data.steps.length; i++) {
-    if (data.steps[i].cum > traveledMeters + 18) {
-      nextIdx = i;
+  document.getElementById("rem-dist").textContent = remKm + " km";
+  document.getElementById("rem-time").textContent = remMins + " min";
+  const eta = new Date(Date.now() + remMins * 60000);
+  document.getElementById("eta-time").textContent =
+    String(eta.getHours()).padStart(2, "0") + ":" + String(eta.getMinutes()).padStart(2, "0");
+
+  // Find next upcoming turn maneuver
+  let nextStep = rData.steps[rData.steps.length - 1];
+  let secondStep = null;
+  let distToNext = remMeters;
+  let gapToSecond = 9999;
+
+  for (let s = 0; s < rData.steps.length; s++) {
+    const st = rData.steps[s];
+    if (st.type === "depart") continue;
+    let stIdx = 0;
+    let stBest = Infinity;
+    for (let i = bestIdx; i < routeCoordsLatLon.length; i++) {
+      const d = haversine(st.lat, st.lon, routeCoordsLatLon[i][0], routeCoordsLatLon[i][1]);
+      if (d < stBest) {
+        stBest = d;
+        stIdx = i;
+      }
+    }
+    const dAlong = (cumDist[stIdx] || 0) - traveledM;
+    if (dAlong > 12) {
+      nextStep = st;
+      distToNext = dAlong;
+      if (s + 1 < rData.steps.length) {
+        secondStep = rData.steps[s + 1];
+        gapToSecond = st.dist || 9999;
+      }
       break;
     }
   }
-  const nextStep = data.steps[nextIdx];
-  const afterStep = (nextIdx + 1 < data.steps.length) ? data.steps[nextIdx + 1] : null;
 
-  if (nextStep) {
-    const distToTurn = haversineMeters(lat, lon, nextStep.lat, nextStep.lon);
-    document.getElementById("turn-icon").innerHTML = getTurnSvg(nextStep.mod, nextStep.type);
-    document.getElementById("turn-dist").textContent = fmtMeters(distToTurn);
-    document.getElementById("turn-street").textContent = `${modToDutch(nextStep.mod, nextStep.type)} ${nextStep.name}`;
-    document.getElementById("turn-sub").textContent = bestDist > 120
-      ? `Afstand tot vaste route: ${Math.round(bestDist)} m`
-      : `Op vaste route · nog ${remMins} min (${remKm.toFixed(1).replace(".", ",")} km)`;
+  setManeuverUI(nextStep, secondStep, distToNext, gapToSecond);
 
+  if (map) {
     if (!turnMarker) {
-      turnMarker = L.marker([nextStep.lat, nextStep.lon], {
-        icon: L.divIcon({ className: "", iconSize: [14, 14], iconAnchor: [7, 7], html: `<div class="turn-dot-pulse"></div>` })
-      }).addTo(map);
+      const dotEl = document.createElement("div");
+      dotEl.className = "turn-target-dot";
+      turnMarker = new maplibregl.Marker({ element: dotEl })
+        .setLngLat([nextStep.lon, nextStep.lat])
+        .addTo(map);
     } else {
-      turnMarker.setLatLng([nextStep.lat, nextStep.lon]);
-    }
-
-    const thenEl = document.getElementById("then-banner");
-    if (afterStep && nextStep.dist < 450) {
-      document.getElementById("then-text").textContent = `${modToDutch(afterStep.mod, afterStep.type)} ${afterStep.name} (${fmtMeters(nextStep.dist)})`;
-      thenEl.classList.add("visible");
-    } else {
-      thenEl.classList.remove("visible");
+      turnMarker.setLngLat([nextStep.lon, nextStep.lat]);
     }
   }
 }
 
-initMap();
-fetch("nav_routes.json")
-  .then(r => r.json())
-  .then(j => {
-    ROUTES = j;
-    renderActiveRoute(true);
-    if (params.get("autostart") === "1") {
-      toggleTracking();
-    }
-  });
+function onGpsErr() {
+  const badge = document.getElementById("gps-badge");
+  badge.classList.remove("locked");
+  document.getElementById("gps-text").textContent = "GPS WACHT";
+}
+
+async function requestWakeLock() {
+  if ("wakeLock" in navigator) {
+    try {
+      await navigator.wakeLock.request("screen");
+      document.getElementById("wake-lbl").textContent = "SCHERM BLIJFT AAN";
+    } catch (e) {}
+  }
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") requestWakeLock();
+});
+
+window.addEventListener("DOMContentLoaded", () => {
+  initMap();
+  requestWakeLock();
+});
 </script>
 </body>
 </html>
