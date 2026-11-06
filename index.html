@@ -190,24 +190,6 @@ header {
   gap: 18px;
   -webkit-overflow-scrolling: touch;
 }
-.empty-state {
-  margin: auto;
-  text-align: center;
-  max-width: 280px;
-  color: var(--text-secondary);
-}
-.empty-state h3 {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text);
-  margin: 0 0 6px 0;
-}
-.empty-state p {
-  font-size: 12.5px;
-  color: var(--text-muted);
-  margin: 0;
-  line-height: 1.5;
-}
 .turn-user {
   align-self: flex-end;
   max-width: 86%;
@@ -282,6 +264,25 @@ header {
 .tool-row svg {
   flex-shrink: 0;
   color: var(--text-muted);
+}
+.pending-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  padding: 2px 0;
+}
+.pending-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  animation: pulse 1.2s infinite ease-in-out;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
 }
 .markdown-body {
   color: var(--text);
@@ -460,7 +461,7 @@ textarea::placeholder {
   border: 1px solid var(--border-strong);
   border-radius: 10px;
   padding: 5px;
-  min-width: 215px;
+  min-width: 220px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
   display: none;
   flex-direction: column;
@@ -481,7 +482,7 @@ textarea::placeholder {
   cursor: pointer;
 }
 .model-opt:active, .model-opt.selected {
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.08);
 }
 .model-opt-sub {
   font-size: 10.5px;
@@ -500,6 +501,44 @@ textarea::placeholder {
   cursor: pointer;
   padding: 0;
 }
+/* In-App File Viewer Modal for file:/// links */
+#file-modal {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 200;
+  display: none;
+  flex-direction: column;
+}
+#file-modal.open {
+  display: flex;
+}
+.modal-hdr {
+  padding-top: max(env(safe-area-inset-top), 12px);
+  padding-bottom: 10px;
+  padding-left: 14px;
+  padding-right: 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.modal-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  font-family: "SF Mono", "JetBrains Mono", monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  -webkit-overflow-scrolling: touch;
+}
 </style>
 </head>
 <body>
@@ -514,8 +553,8 @@ textarea::placeholder {
     <span class="session-title" id="hdr-title">iPhone 13 &amp; PC Workspace</span>
   </div>
   <div class="hdr-right">
-    <a class="nav-pill" href="nav.html?route=r1&dir=heen&v=4">Cockpit 55</a>
-    <button class="icon-btn" onclick="startNewChatMode()" aria-label="New conversation" title="New conversation">
+    <a class="nav-pill" href="nav.html?route=r1&dir=heen&v=5">Cockpit</a>
+    <button class="icon-btn" onclick="startNewChatMode()" aria-label="New conversation">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
         <path d="M8 3.2v9.6M3.2 8h9.6"/>
       </svg>
@@ -538,35 +577,51 @@ textarea::placeholder {
 
 <div id="chat"></div>
 
+<div id="file-modal">
+  <div class="modal-hdr">
+    <span class="modal-title" id="modal-title">file</span>
+    <button class="icon-btn" onclick="closeFileModal()" aria-label="Close">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+        <path d="M4 4l8 8M12 4l-8 8"/>
+      </svg>
+    </button>
+  </div>
+  <div class="modal-body markdown-body" id="modal-body"></div>
+</div>
+
 <footer>
   <div class="model-menu" id="model-menu">
-    <div class="model-opt selected" data-model="pro" onclick="selectModel('pro', 'Gemini 2.5 Pro')">
-      <span>Gemini 2.5 Pro</span>
-      <span class="model-opt-sub">Deep reasoning</span>
+    <div class="model-opt selected" data-model="argon" onclick="selectModel('argon')">
+      <span>Argon</span>
+      <span class="model-opt-sub">Default</span>
     </div>
-    <div class="model-opt" data-model="flash" onclick="selectModel('flash', 'Gemini 2.5 Flash')">
+    <div class="model-opt" data-model="pro" onclick="selectModel('pro')">
+      <span>Gemini 2.5 Pro</span>
+      <span class="model-opt-sub">Pro</span>
+    </div>
+    <div class="model-opt" data-model="flash" onclick="selectModel('flash')">
       <span>Gemini 2.5 Flash</span>
       <span class="model-opt-sub">Fast</span>
     </div>
-    <div class="model-opt" data-model="flash_lite" onclick="selectModel('flash_lite', 'Gemini 2.5 Flash-Lite')">
+    <div class="model-opt" data-model="flash_lite" onclick="selectModel('flash_lite')">
       <span>Gemini 2.5 Flash-Lite</span>
-      <span class="model-opt-sub">Lightweight</span>
+      <span class="model-opt-sub">Lite</span>
     </div>
   </div>
 
   <div class="composer">
-    <textarea id="input" rows="1" placeholder="Ask Antigravity..." oninput="this.style.height='auto';this.style.height=(this.scrollHeight)+'px'"></textarea>
+    <textarea id="input" rows="1" placeholder="Ask Antigravity..." oninput="this.style.height='auto';this.style.height=(this.scrollHeight)+'px'" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}"></textarea>
     <div class="composer-bar">
       <div class="composer-meta">
         <button class="model-btn" id="model-btn" onclick="toggleModelMenu(event)">
-          <span id="model-label">Gemini 2.5 Pro</span>
+          <span id="model-label">Argon</span>
           <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M4 6l4 4 4-4"/>
           </svg>
         </button>
         <div class="conn-pill" id="conn-pill">
           <span class="conn-dot"></span>
-          <span id="conn-text">Connecting...</span>
+          <span id="conn-text">Offline</span>
         </div>
       </div>
       <button class="send-btn" onclick="sendMessage()" aria-label="Send">
@@ -580,17 +635,20 @@ textarea::placeholder {
 
 <script>
 const MODEL_NAMES = {
+  argon: "Argon",
   pro: "Gemini 2.5 Pro",
   flash: "Gemini 2.5 Flash",
   flash_lite: "Gemini 2.5 Flash-Lite"
 };
 
 let currentConv = localStorage.getItem("agy_cur_conv") || "90a21ecb-1307-4222-821b-4e7ce0c293ba";
-let selectedModel = localStorage.getItem("agy_model") || "pro";
+let selectedModel = localStorage.getItem("agy_model") || "argon";
 let isNewChatMode = false;
-let lastStepCount = -1;
+let lastRenderSig = "";
+let openThoughts = new Set();
 let API_BASE = "";
 let pcOnline = false;
+let consecutiveFailures = 0;
 
 if (window.marked) {
   marked.setOptions({ gfm: true, breaks: true });
@@ -606,10 +664,11 @@ function setConnStatus(online, modeText) {
 
 async function resolveApiBase() {
   try {
-    const r = await fetch("/api/conversations", {signal: AbortSignal.timeout(1600)});
+    const r = await fetch("/api/conversations", {signal: AbortSignal.timeout(1500)});
     if (r.ok) {
       API_BASE = "";
-      setConnStatus(true, "PC Online · Wi-Fi");
+      consecutiveFailures = 0;
+      setConnStatus(true, "Wi-Fi");
       return;
     }
   } catch (e) {}
@@ -621,12 +680,13 @@ async function resolveApiBase() {
       const ping = await fetch(info.tunnel_url + "/api/conversations", {signal: AbortSignal.timeout(3500)});
       if (ping.ok) {
         API_BASE = info.tunnel_url;
-        setConnStatus(true, "PC Online · 5G");
+        consecutiveFailures = 0;
+        setConnStatus(true, "5G");
         return;
       }
     }
   } catch (e) {}
-  setConnStatus(false, "PC Offline · Cache");
+  setConnStatus(false, "Cache");
 }
 
 function toggleModelMenu(e) {
@@ -639,17 +699,15 @@ document.addEventListener("click", () => {
   if (m) m.classList.remove("open");
 });
 
-async function selectModel(modelKey, label) {
+async function selectModel(modelKey) {
+  if (!MODEL_NAMES[modelKey]) modelKey = "argon";
   selectedModel = modelKey;
   localStorage.setItem("agy_model", modelKey);
-  document.getElementById("model-label").textContent = label || MODEL_NAMES[modelKey] || "Gemini 2.5 Pro";
+  document.getElementById("model-label").textContent = MODEL_NAMES[modelKey];
   document.querySelectorAll(".model-opt").forEach(el => {
     el.classList.toggle("selected", el.getAttribute("data-model") === modelKey);
   });
   document.getElementById("model-menu").classList.remove("open");
-  if (isNewChatMode) {
-    document.getElementById("input").placeholder = `Start new conversation with ${MODEL_NAMES[selectedModel]}...`;
-  }
   if (pcOnline) {
     try {
       await fetch(API_BASE + "/api/model", {
@@ -662,7 +720,7 @@ async function selectModel(modelKey, label) {
 }
 
 async function syncModelFromPc() {
-  selectModel(selectedModel, MODEL_NAMES[selectedModel]);
+  selectModel(selectedModel);
   if (!pcOnline) return;
   try {
     const r = await fetch(API_BASE + "/api/model");
@@ -671,7 +729,7 @@ async function syncModelFromPc() {
       if (data.model && MODEL_NAMES[data.model]) {
         selectedModel = data.model;
         localStorage.setItem("agy_model", selectedModel);
-        selectModel(selectedModel, MODEL_NAMES[selectedModel]);
+        selectModel(selectedModel);
       }
     }
   } catch (e) {}
@@ -693,9 +751,8 @@ function renderConversationList(list) {
       isNewChatMode = false;
       currentConv = c.id;
       localStorage.setItem("agy_cur_conv", currentConv);
-      lastStepCount = -1;
+      lastRenderSig = "";
       document.getElementById("hdr-title").textContent = c.title;
-      document.getElementById("input").placeholder = "Ask Antigravity...";
       toggleDrawer(false);
       loadMessages(true);
     };
@@ -712,9 +769,9 @@ async function loadConversations() {
     const list = await r.json();
     localStorage.setItem("agy_cache_convs", JSON.stringify(list));
     renderConversationList(list);
-    if (!pcOnline) setConnStatus(true, API_BASE ? "PC Online · 5G" : "PC Online · Wi-Fi");
+    consecutiveFailures = 0;
+    if (!pcOnline) setConnStatus(true, API_BASE ? "5G" : "Wi-Fi");
   } catch (e) {
-    setConnStatus(false, "PC Offline · Cache");
     const cached = localStorage.getItem("agy_cache_convs");
     if (cached) {
       try { renderConversationList(JSON.parse(cached)); } catch (err) {}
@@ -740,11 +797,33 @@ function renderMarkdown(md) {
   return out.replace(/\n/g, "<br>");
 }
 
-function renderTurnsToDOM(msgs) {
+function computePayloadSig(msgs) {
+  if (!msgs || !msgs.length) return "0";
+  const last = msgs[msgs.length - 1];
+  const tLen = (last.tools && last.tools.length) ? last.tools.length : 0;
+  const cLen = (last.content || "").length;
+  const thLen = (last.thinking || "").length;
+  return `${msgs.length}:${last.step}:${last.role}:${tLen}:${cLen}:${thLen}`;
+}
+
+function toggleThoughtBlock(stepKey, el) {
+  el.classList.toggle("open");
+  if (el.classList.contains("open")) {
+    openThoughts.add(stepKey);
+  } else {
+    openThoughts.delete(stepKey);
+  }
+}
+
+function renderTurnsToDOM(msgs, forceScroll) {
   const chat = document.getElementById("chat");
+  const wasAtBottom = (chat.scrollHeight - chat.scrollTop - chat.clientHeight) < 95;
+  const prevScrollTop = chat.scrollTop;
+
   chat.innerHTML = "";
-  msgs.forEach(m => {
+  msgs.forEach((m, idx) => {
     const div = document.createElement("div");
+    const stepKey = String(m.step || idx);
     if (m.role === "user") {
       div.className = "turn-user";
       div.textContent = m.content;
@@ -753,12 +832,13 @@ function renderTurnsToDOM(msgs) {
       let inner = "";
       const tCount = (m.tools && m.tools.length) ? m.tools.length : 0;
       if (m.thinking || tCount > 0) {
+        const isOpen = openThoughts.has(stepKey) ? " open" : "";
         const label = tCount > 0 ? `Thought · ${tCount} ${tCount === 1 ? 'action' : 'actions'}` : `Thought`;
         const toolsHtml = tCount > 0 ? (`<div class="tools-list" style="margin-bottom:8px;">` + m.tools.map(t => `<div class="tool-row">
           <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-6.5"/></svg>
           <span>${escapeHtml(t)}</span>
         </div>`).join("") + `</div>`) : "";
-        inner += `<div class="thought-block" onclick="this.classList.toggle('open')">
+        inner += `<div class="thought-block${isOpen}" onclick="toggleThoughtBlock('${stepKey}', this)">
           <div class="thought-summary"><span class="thought-chev">›</span><span>${label}</span></div>
           <div class="thought-body">${toolsHtml}${escapeHtml(m.thinking || "")}</div>
         </div>`;
@@ -777,7 +857,62 @@ function renderTurnsToDOM(msgs) {
     }
     chat.appendChild(div);
   });
-  chat.scrollTop = chat.scrollHeight;
+
+  // If the last message in the thread is from the user (or an agent turn still without final content), show subtle live pulse
+  if (msgs.length > 0 && pcOnline) {
+    const last = msgs[msgs.length - 1];
+    if (last.role === "user" || (last.role === "agent" && !last.content)) {
+      const pDiv = document.createElement("div");
+      pDiv.className = "pending-row";
+      pDiv.innerHTML = `<span class="pending-dot"></span><span>Working...</span>`;
+      chat.appendChild(pDiv);
+    }
+  }
+
+  if (forceScroll || wasAtBottom) {
+    chat.scrollTop = chat.scrollHeight;
+  } else {
+    chat.scrollTop = prevScrollTop;
+  }
+}
+
+// Intercept file:/// links in markdown responses so they open cleanly on iPhone
+document.getElementById("chat").addEventListener("click", async (e) => {
+  const a = e.target.closest("a");
+  if (!a) return;
+  const href = a.getAttribute("href") || "";
+  if (href.startsWith("file:///")) {
+    e.preventDefault();
+    let rawPath = decodeURIComponent(href.replace(/^file:\/\/\//, "")).replace(/#.*$/, "");
+    openFileModal(rawPath);
+  }
+});
+
+async function openFileModal(filePath) {
+  const modal = document.getElementById("file-modal");
+  const titleEl = document.getElementById("modal-title");
+  const bodyEl = document.getElementById("modal-body");
+  const baseName = filePath.split(/[\\/]/).pop() || filePath;
+  titleEl.textContent = baseName;
+  bodyEl.innerHTML = `<div class="pending-row"><span class="pending-dot"></span><span>Loading...</span></div>`;
+  modal.classList.add("open");
+
+  try {
+    const r = await fetch(API_BASE + "/api/file?path=" + encodeURIComponent(filePath));
+    if (!r.ok) throw new Error("not found");
+    const data = await r.json();
+    if (baseName.toLowerCase().endsWith(".md")) {
+      bodyEl.innerHTML = renderMarkdown(data.content || "");
+    } else {
+      bodyEl.innerHTML = `<pre><code>${escapeHtml(data.content || "")}</code></pre>`;
+    }
+  } catch (err) {
+    bodyEl.innerHTML = `<pre><code>${escapeHtml(filePath)}</code></pre>`;
+  }
+}
+
+function closeFileModal() {
+  document.getElementById("file-modal").classList.remove("open");
 }
 
 async function loadMessages(forceScroll) {
@@ -787,19 +922,27 @@ async function loadMessages(forceScroll) {
     if (!r.ok) throw new Error("offline");
     const msgs = await r.json();
     localStorage.setItem("agy_cache_msgs_" + currentConv, JSON.stringify(msgs));
-    if (!pcOnline) setConnStatus(true, API_BASE ? "PC Online · 5G" : "PC Online · Wi-Fi");
-    if (!forceScroll && msgs.length === lastStepCount) return;
-    lastStepCount = msgs.length;
-    renderTurnsToDOM(msgs);
+    consecutiveFailures = 0;
+    if (!pcOnline) setConnStatus(true, API_BASE ? "5G" : "Wi-Fi");
+
+    const sig = computePayloadSig(msgs);
+    if (!forceScroll && sig === lastRenderSig) return;
+    lastRenderSig = sig;
+    renderTurnsToDOM(msgs, forceScroll);
   } catch (e) {
-    setConnStatus(false, "PC Offline · Cache");
-    if (forceScroll || lastStepCount === -1) {
+    consecutiveFailures++;
+    if (consecutiveFailures === 2) {
+      resolveApiBase();
+    } else if (consecutiveFailures >= 3) {
+      setConnStatus(false, "Cache");
+    }
+    if (forceScroll || !lastRenderSig) {
       const cached = localStorage.getItem("agy_cache_msgs_" + currentConv);
       if (cached) {
         try {
           const msgs = JSON.parse(cached);
-          lastStepCount = msgs.length;
-          renderTurnsToDOM(msgs);
+          lastRenderSig = computePayloadSig(msgs);
+          renderTurnsToDOM(msgs, true);
         } catch (err) {}
       }
     }
@@ -808,15 +951,11 @@ async function loadMessages(forceScroll) {
 
 function startNewChatMode() {
   isNewChatMode = true;
-  lastStepCount = -1;
+  lastRenderSig = "";
   document.getElementById("hdr-title").textContent = "New Conversation";
-  const chat = document.getElementById("chat");
-  chat.innerHTML = `<div class="empty-state">
-    <h3>New Conversation</h3>
-    <p>Choose your model below (${escapeHtml(MODEL_NAMES[selectedModel])}) and send a prompt to start a new session on your PC.</p>
-  </div>`;
+  document.getElementById("chat").innerHTML = "";
   const inp = document.getElementById("input");
-  inp.placeholder = `Start new conversation with ${MODEL_NAMES[selectedModel]}...`;
+  inp.value = "";
   inp.focus();
 }
 
@@ -825,8 +964,8 @@ async function sendMessage() {
   const text = inp.value.trim();
   if (!text) return;
   if (!pcOnline) {
-    alert("Your PC is currently offline. Turn on DESKTOP-PFV63UR to send new prompts to Antigravity.");
-    return;
+    await resolveApiBase();
+    if (!pcOnline) return;
   }
   inp.value = "";
   inp.style.height = "auto";
@@ -838,11 +977,15 @@ async function sendMessage() {
   div.className = "turn-user";
   div.textContent = text;
   chat.appendChild(div);
+
+  const pDiv = document.createElement("div");
+  pDiv.className = "pending-row";
+  pDiv.innerHTML = `<span class="pending-dot"></span><span>Working...</span>`;
+  chat.appendChild(pDiv);
   chat.scrollTop = chat.scrollHeight;
 
   if (isNewChatMode) {
     isNewChatMode = false;
-    inp.placeholder = "Ask Antigravity...";
     document.getElementById("hdr-title").textContent = text.slice(0, 42);
     const r = await fetch(API_BASE + "/api/new", {
       method: "POST",
@@ -853,8 +996,8 @@ async function sendMessage() {
     if (res.conversation_id) {
       currentConv = res.conversation_id;
       localStorage.setItem("agy_cur_conv", currentConv);
-      lastStepCount = -1;
-      setTimeout(() => { loadConversations(); loadMessages(true); }, 1000);
+      lastRenderSig = "";
+      setTimeout(() => { loadConversations(); loadMessages(true); }, 900);
     }
   } else {
     await fetch(API_BASE + "/api/send", {
@@ -862,7 +1005,7 @@ async function sendMessage() {
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({id: currentConv, content: text})
     });
-    setTimeout(() => loadMessages(true), 800);
+    setTimeout(() => loadMessages(true), 700);
   }
 }
 
@@ -871,7 +1014,7 @@ async function sendMessage() {
   await syncModelFromPc();
   loadConversations();
   loadMessages(true);
-  setInterval(() => loadMessages(false), 2500);
+  setInterval(() => loadMessages(false), 2000);
 })();
 </script>
 </body>

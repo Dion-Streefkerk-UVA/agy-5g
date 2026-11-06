@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="Brommer Nav"/>
 <meta name="theme-color" content="#0b0d11"/>
-<title>Brommer Cockpit — 55 km/h Navigatie</title>
+<title>55 km/h Navigatie</title>
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"/>
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <style>
@@ -59,7 +59,6 @@
     display: none !important;
   }
 
-  /* TOP NAVIGATION STACK */
   .top-stack {
     position: absolute;
     top: max(10px, env(safe-area-inset-top));
@@ -75,7 +74,6 @@
     pointer-events: auto;
   }
 
-  /* Route & Direction Selector Bar */
   .selector-bar {
     display: flex;
     align-items: center;
@@ -146,13 +144,12 @@
     transition: all 0.15s ease;
   }
   .route-pill.active {
-    background: rgba(59, 130, 246, 0.20);
-    border-color: rgba(96, 165, 250, 0.55);
+    background: rgba(59, 130, 246, 0.22);
+    border-color: rgba(96, 165, 250, 0.60);
     color: #ffffff;
     font-weight: 700;
   }
 
-  /* Primary Turn-by-Turn Maneuver Card */
   .maneuver-card {
     background: var(--bg-glass-heavy);
     backdrop-filter: blur(24px);
@@ -246,7 +243,6 @@
     text-overflow: ellipsis;
   }
 
-  /* Secondary "Daarna" Preview Pill */
   .then-banner {
     align-self: flex-start;
     display: none;
@@ -275,7 +271,6 @@
     letter-spacing: 0.05em;
   }
 
-  /* Off-route alert banner */
   .offroute-banner {
     background: rgba(239, 68, 68, 0.94);
     backdrop-filter: blur(12px);
@@ -291,7 +286,6 @@
     box-shadow: 0 8px 24px rgba(239, 68, 68, 0.35);
   }
 
-  /* FLOATING MAP ACTION CONTROLS (Right Side) */
   .map-tools {
     position: absolute;
     right: 12px;
@@ -345,7 +339,6 @@
     color: #ffffff;
   }
 
-  /* Google Maps-style Floating "Centreren" Pill (Bottom Left above HUD) */
   .recenter-pill {
     position: absolute;
     left: 12px;
@@ -377,7 +370,6 @@
     height: 17px;
   }
 
-  /* BOTTOM TELEMETRY HUD */
   .bottom-hud {
     position: absolute;
     bottom: max(12px, env(safe-area-inset-bottom));
@@ -504,7 +496,6 @@
     letter-spacing: 0.03em;
   }
 
-  /* 3D Navigation Puck on Road Surface */
   .nav-puck-wrap {
     width: 84px;
     height: 84px;
@@ -520,7 +511,6 @@
     filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.55));
   }
 
-  /* Next Turn Intersection Pulse Dot */
   .turn-target-dot {
     width: 18px;
     height: 18px;
@@ -571,7 +561,7 @@
         <div class="turn-ActionTag" id="turn-tag">ROUTE 1 · HEEN</div>
       </div>
       <div class="turn-street" id="turn-street">1. Het Lint &amp; De Meernbrug</div>
-      <div class="turn-meta" id="turn-meta">Aanbevolen · 4 stoplichten · ~44 min op 55 km/h</div>
+      <div class="turn-meta" id="turn-meta">HEEN · 4 stoplichten · ~44 min</div>
     </div>
   </div>
 
@@ -582,20 +572,18 @@
   </div>
 
   <div class="offroute-banner" id="offroute-banner">
-    Van route afgeweken — gekleurde lijn op kaart toont het vaste pad
+    Van route afgeweken
   </div>
 </div>
 
-<!-- Google Maps-style Recenter / Activate 3D Navigation Pill -->
 <button class="recenter-pill visible" id="recenter-pill" onclick="engageNavigation()">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
     <polygon points="12 2 19 21 12 17 5 21 12 2"/>
   </svg>
-  <span id="recenter-label">Start 3D Navigatie</span>
+  <span id="recenter-label">Start Navigatie</span>
 </button>
 
 <div class="map-tools">
-  <!-- Compass / Course-Up vs North-Up Toggle -->
   <button class="tool-btn active" id="btn-compass" onclick="toggleCourseUp()" title="Koers boven / Noord boven">
     <svg id="compass-needle" viewBox="0 0 24 24" fill="none" style="transition: transform 0.08s linear;">
       <polygon points="12,3 15.5,12 12,10.5 8.5,12" fill="#ef4444"/>
@@ -604,7 +592,6 @@
     <span class="tool-sub" id="lbl-compass">3D KOERS</span>
   </button>
 
-  <!-- Recenter on User GPS -->
   <button class="tool-btn" id="btn-follow" onclick="engageNavigation()" title="Centreer op gps">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="7"/>
@@ -617,7 +604,6 @@
     <span class="tool-sub">CENTREER</span>
   </button>
 
-  <!-- Full Route Overview -->
   <button class="tool-btn active" id="btn-overview" onclick="fitFullRoute(true)" title="Hele route tonen">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="15 3 21 3 21 9"/>
@@ -628,7 +614,6 @@
     <span class="tool-sub">OVERZICHT</span>
   </button>
 
-  <!-- Day / Night Instant Layer Switch (Never removes route layers!) -->
   <button class="tool-btn" id="btn-theme" onclick="toggleMapTheme()" title="Wissel Dag / Nacht kaart">
     <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="4"/>
@@ -637,13 +622,12 @@
     <span class="tool-sub" id="lbl-theme">DAGKAART</span>
   </button>
 
-  <!-- Direct Open in Google Maps App -->
-  <a class="tool-btn" id="btn-gmaps" href="#" target="_blank" rel="noopener" title="Open deze route in Google Maps">
+  <a class="tool-btn" id="btn-gmaps" href="#" target="_blank" rel="noopener" title="Open in Google Maps">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
       <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z"/>
       <circle cx="12" cy="9" r="2.5"/>
     </svg>
-    <span class="tool-sub">MAPS APP</span>
+    <span class="tool-sub">MAPS</span>
   </a>
 </div>
 
@@ -664,7 +648,7 @@
       <div class="metric-sep"></div>
       <div class="metric-cell">
         <div class="metric-val" id="rem-time">44 min</div>
-        <div class="metric-lbl">Rijtijd (55)</div>
+        <div class="metric-lbl">Rijtijd</div>
       </div>
       <div class="metric-sep"></div>
       <div class="metric-cell">
@@ -700,13 +684,12 @@ let turnMarker = null;
 let startMarker = null;
 let endMarker = null;
 
-// Navigation & Camera State
-let followUser = false; // Starts in route overview until user taps "Start 3D Navigatie" or starts moving
-let courseUp = true;    // true = 3D rotating course-up like Google Maps; false = 2D north-up
+let followUser = false;
+let courseUp = true;
 let isDragging = false;
 let isEasing = false;
+let routeSwitchBannerUntil = 0;
 
-// Live Sensor State ([lon, lat] for MapLibre)
 let targetLngLat = null;
 let displayLngLat = null;
 let targetHeading = 0;
@@ -716,9 +699,8 @@ let gpsHeading = null;
 let lastSpeedMps = 0;
 let compassGranted = false;
 
-// Active Route Geometry Cache
-let routeCoordsLatLon = []; // [[lat, lon], ...]
-let routeCoordsLngLat = []; // [[lon, lat], ...]
+let routeCoordsLatLon = [];
+let routeCoordsLngLat = [];
 let cumDist = [];
 let totalRouteMeters = 39200;
 let currentSplitIdx = 0;
@@ -775,8 +757,6 @@ function createPuckElement() {
   return wrap;
 }
 
-// Unified MapLibre Style with BOTH Night (Carto Dark Matter @2x) and Day (Carto Voyager @2x)
-// plus all GeoJSON route sources built-in from frame 0 -> Day/Night switch is instant and NEVER drops routes!
 function createUnifiedMapStyle() {
   const emptyLine = { type: "Feature", geometry: { type: "LineString", coordinates: [] } };
   return {
@@ -890,7 +870,6 @@ function createUnifiedMapStyle() {
 }
 
 function initMap() {
-  // Sync initial button states with URL params
   ["r1", "r2", "r3"].forEach(k => {
     document.getElementById("rt-" + k).classList.toggle("active", k === curRoute);
   });
@@ -949,7 +928,7 @@ function initMap() {
     requestWakeLock();
   }, { once: true });
 
-  fetch("nav_routes.json?v=4")
+  fetch("nav_routes.json?v=5")
     .then(r => r.json())
     .then(data => {
       NAV_DATA = data;
@@ -958,6 +937,19 @@ function initMap() {
       initCompassListener();
       requestAnimationFrame(cameraLoop);
     });
+}
+
+function setTurnMarkerAt(lon, lat) {
+  if (!map) return;
+  if (!turnMarker) {
+    const dotEl = document.createElement("div");
+    dotEl.className = "turn-target-dot";
+    turnMarker = new maplibregl.Marker({ element: dotEl })
+      .setLngLat([lon, lat])
+      .addTo(map);
+  } else {
+    turnMarker.setLngLat([lon, lat]);
+  }
 }
 
 function updateRouteGeoJSON() {
@@ -973,7 +965,6 @@ function updateRouteGeoJSON() {
     map.setPaintProperty("route-ahead-core", "line-color", meta.core);
   }
 
-  // Also show the other 2 routes faintly for instant visual comparison
   const srcAlt = map.getSource("alt-routes");
   if (srcAlt && NAV_DATA) {
     const altFeatures = [];
@@ -1016,6 +1007,7 @@ function setDirection(dir) {
   curDir = dir;
   document.getElementById("dir-heen").classList.toggle("active", dir === "heen");
   document.getElementById("dir-terug").classList.toggle("active", dir === "terug");
+  routeSwitchBannerUntil = Date.now() + 2800;
   renderSelectedRoute(!followUser);
 }
 
@@ -1024,6 +1016,7 @@ function setRoute(rKey) {
   ["r1", "r2", "r3"].forEach(k => {
     document.getElementById("rt-" + k).classList.toggle("active", k === rKey);
   });
+  routeSwitchBannerUntil = Date.now() + 2800;
   renderSelectedRoute(!followUser);
 }
 
@@ -1033,7 +1026,6 @@ function renderSelectedRoute(shouldFitBounds) {
   const rData = routeObj[curDir];
   if (!rData) return;
 
-  // Update Google Maps direct-start button URL
   const gmapsBtn = document.getElementById("btn-gmaps");
   if (gmapsBtn) {
     gmapsBtn.href = curDir === "heen" ? routeObj.gmaps_heen : routeObj.gmaps_terug;
@@ -1052,6 +1044,25 @@ function renderSelectedRoute(shouldFitBounds) {
   }
   totalRouteMeters = cumDist[cumDist.length - 1] || ((rData.distance_km || 39.2) * 1000);
 
+  // Monotonically index each step to its exact vertex on routeCoordsLatLon for meter-accurate turn countdowns
+  const steps = rData.steps || [];
+  let searchFrom = 0;
+  for (let s = 0; s < steps.length; s++) {
+    const st = steps[s];
+    let bestI = searchFrom;
+    let bestD = Infinity;
+    const limitI = Math.min(routeCoordsLatLon.length, searchFrom + 350);
+    for (let i = searchFrom; i < limitI; i++) {
+      const d = haversine(st.lat, st.lon, routeCoordsLatLon[i][0], routeCoordsLatLon[i][1]);
+      if (d < bestD) {
+        bestD = d;
+        bestI = i;
+      }
+    }
+    st._ptIdx = bestI;
+    searchFrom = bestI;
+  }
+
   if (routeCoordsLatLon.length > 5 && compassHeading === null && gpsHeading === null) {
     targetHeading = calcBearing(
       routeCoordsLatLon[0][0], routeCoordsLatLon[0][1],
@@ -1060,9 +1071,15 @@ function renderSelectedRoute(shouldFitBounds) {
     displayHeading = targetHeading;
   }
 
-  // Always update HUD distances, times, and top card immediately on route/direction switch
   updateHudForSelectedRoute(routeObj, rData);
   updateRouteGeoJSON();
+
+  // Position turnMarker on the first upcoming maneuver of the newly selected route
+  if (steps.length > 1) {
+    setTurnMarkerAt(steps[1].lon, steps[1].lat);
+  } else if (steps.length === 1) {
+    setTurnMarkerAt(steps[0].lon, steps[0].lat);
+  }
 
   if (map && routeCoordsLngLat.length > 1) {
     if (startMarker) startMarker.remove();
@@ -1087,7 +1104,6 @@ function renderSelectedRoute(shouldFitBounds) {
     }
   }
 
-  // If actively navigating with GPS lock, recalculate snapped progress on the newly selected route
   if (targetLngLat && followUser) {
     processLocationUpdate(targetLngLat[1], targetLngLat[0], lastSpeedMps, gpsHeading);
   }
@@ -1120,6 +1136,9 @@ function fitFullRoute(userClickedOverview = true) {
   if (userClickedOverview) {
     followUser = false;
     updateControlStates();
+    if (NAV_DATA && NAV_DATA[curRoute]) {
+      updateHudForSelectedRoute(NAV_DATA[curRoute], NAV_DATA[curRoute][curDir]);
+    }
   }
   const bounds = new maplibregl.LngLatBounds(routeCoordsLngLat[0], routeCoordsLngLat[0]);
   for (const pt of routeCoordsLngLat) bounds.extend(pt);
@@ -1133,11 +1152,11 @@ function fitFullRoute(userClickedOverview = true) {
   setTimeout(() => { isEasing = false; }, 680);
 }
 
-// Engage Google Maps-style 3D Follow + Hardware Compass
 function engageNavigation() {
   requestCompassPermission();
   requestWakeLock();
   followUser = true;
+  routeSwitchBannerUntil = 0;
   updateControlStates();
 
   if (targetLngLat && map) {
@@ -1196,7 +1215,6 @@ function toggleCourseUp() {
   }
 }
 
-// Instant Day / Night toggle by switching raster layer visibility -> Route layers stay 100% intact!
 function toggleMapTheme() {
   lightTheme = !lightTheme;
   if (map && map.getLayer("basemap-light") && map.getLayer("basemap-dark")) {
@@ -1217,10 +1235,10 @@ function updateControlStates() {
   const label = document.getElementById("recenter-label");
   if (!followUser) {
     pill.classList.add("visible");
-    label.textContent = "Start 3D Navigatie / Centreer";
+    label.textContent = "Start Navigatie";
   } else if (!compassGranted && typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function") {
     pill.classList.add("visible");
-    label.textContent = "Activeer Kompas (3D)";
+    label.textContent = "Activeer Kompas";
   } else {
     pill.classList.remove("visible");
   }
@@ -1265,10 +1283,9 @@ function onDeviceOrientation(e) {
   compassHeading = (hdg + 360) % 360;
   compassGranted = true;
 
-  if (lastSpeedMps < 2.2 || gpsHeading === null) {
+  // Use magnetic compass only below 10 km/h (2.8 m/s) to avoid scooter frame/motor magnetic interference at speed
+  if (lastSpeedMps < 2.8 || gpsHeading === null) {
     targetHeading = compassHeading;
-  } else {
-    targetHeading = lerpAngle(compassHeading, gpsHeading, 0.75);
   }
 }
 
@@ -1358,10 +1375,14 @@ function formatDist(m) {
 
 function setManeuverUI(step, nextStep, distToStep, gapToNext, routeTitle) {
   if (!step) return;
-  document.getElementById("turn-dist").textContent = formatDist(distToStep);
-  document.getElementById("turn-tag").textContent = getActionTag(step);
-  document.getElementById("turn-street").textContent = formatStepDutch(step);
   const meta = ROUTE_META[curRoute] || ROUTE_META.r1;
+  if (Date.now() < routeSwitchBannerUntil) {
+    document.getElementById("turn-meta").textContent = `${routeTitle} · ${meta.lights}`;
+    return;
+  }
+  document.getElementById("turn-dist").textContent = formatDist(distToStep);
+  document.getElementById("turn-tag").textContent = `${getActionTag(step)} · ${meta.short}`;
+  document.getElementById("turn-street").textContent = formatStepDutch(step);
   document.getElementById("turn-meta").textContent = `${routeTitle} · ${meta.lights}`;
   document.getElementById("turn-icon").innerHTML = getTurnSvg(step.mod || "", step.type || "", 30);
 
@@ -1398,7 +1419,7 @@ function onGpsPos(pos) {
 
   const isFirst = (targetLngLat === null);
   lastSpeedMps = spdMps;
-  if (hdg !== null && !isNaN(hdg) && spdMps >= 1.8) {
+  if (hdg !== null && !isNaN(hdg) && spdMps >= 2.0) {
     gpsHeading = hdg;
   }
 
@@ -1424,13 +1445,22 @@ function onGpsPos(pos) {
   const kmh = Math.max(0, Math.round(spdMps * 3.6));
   document.getElementById("speed-val").textContent = kmh;
 
-  // Auto-engage 3D follow when user starts riding (> 6 km/h)
+  // Auto-select Heen or Terug on first fix if no URL param forced it
+  if (isFirst && NAV_DATA && !params.get("dir")) {
+    const dHome = haversine(lat, lon, 52.28640, 4.82693);
+    const dWork = haversine(lat, lon, 52.06365, 5.10798);
+    if (dWork < 1500 && curDir !== "terug") {
+      setDirection("terug");
+    } else if (dHome < 1500 && curDir !== "heen") {
+      setDirection("heen");
+    }
+  }
+
   if (!followUser && kmh >= 6) {
     followUser = true;
     updateControlStates();
   }
 
-  // Only update live progress along route when followUser is active (so switching routes in Overview keeps static route totals visible!)
   if (followUser || isFirst) {
     processLocationUpdate(lat, lon, spdMps, gpsHeading);
   }
@@ -1452,8 +1482,6 @@ function processLocationUpdate(lat, lon, spdMps, hdg) {
     }
   }
 
-  // Only split traveled vs ahead polyline if user is actually near the route (< 1.5 km from current segment)
-  // (e.g., if previewing "Terug" while sitting at home in Amstelveen, don't mark the whole route as already traveled!)
   if (bestDist < 1500 && bestIdx < routeCoordsLatLon.length - 10) {
     currentSplitIdx = bestIdx;
   } else {
@@ -1461,16 +1489,23 @@ function processLocationUpdate(lat, lon, spdMps, hdg) {
   }
   updateRouteGeoJSON();
 
-  if (hdg !== null && !isNaN(hdg) && spdMps >= 2.2) {
-    targetHeading = compassHeading !== null ? lerpAngle(compassHeading, hdg, 0.75) : hdg;
-  } else if (compassHeading !== null) {
-    targetHeading = compassHeading;
-  } else if (currentSplitIdx < routeCoordsLatLon.length - 2) {
+  // Compute forward road tangent bearing
+  let roadBearing = targetHeading;
+  if (currentSplitIdx < routeCoordsLatLon.length - 2) {
     const nextIdx = Math.min(routeCoordsLatLon.length - 1, currentSplitIdx + 3);
-    targetHeading = calcBearing(
+    roadBearing = calcBearing(
       routeCoordsLatLon[currentSplitIdx][0], routeCoordsLatLon[currentSplitIdx][1],
       routeCoordsLatLon[nextIdx][0], routeCoordsLatLon[nextIdx][1]
     );
+  }
+
+  // Above 10 km/h (2.8 m/s), use pure GPS course + road tangent (immune to scooter magnetic interference)
+  if (spdMps >= 2.8 && hdg !== null && !isNaN(hdg)) {
+    targetHeading = bestDist < 45 ? lerpAngle(hdg, roadBearing, 0.35) : hdg;
+  } else if (compassHeading !== null) {
+    targetHeading = compassHeading;
+  } else {
+    targetHeading = roadBearing;
   }
 
   if (!followUser) return;
@@ -1492,7 +1527,7 @@ function processLocationUpdate(lat, lon, spdMps, hdg) {
   document.getElementById("eta-time").textContent =
     String(eta.getHours()).padStart(2, "0") + ":" + String(eta.getMinutes()).padStart(2, "0");
 
-  // Find next upcoming turn maneuver using precomputed st.cum
+  // Find next upcoming turn using polyline-indexed _ptIdx for meter-accurate distance countdown
   const steps = rData.steps || [];
   let nextStep = steps[steps.length - 1] || null;
   let secondStep = null;
@@ -1502,8 +1537,11 @@ function processLocationUpdate(lat, lon, spdMps, hdg) {
   for (let s = 0; s < steps.length; s++) {
     const st = steps[s];
     if (st.type === "depart") continue;
-    const dAlong = (st.cum || 0) - traveledM;
-    if (dAlong > 15) {
+    const stMeters = (typeof st._ptIdx === "number" && cumDist[st._ptIdx] !== undefined)
+      ? cumDist[st._ptIdx]
+      : (st.cum || 0);
+    const dAlong = stMeters - traveledM;
+    if (dAlong > 12) {
       nextStep = st;
       distToNext = dAlong;
       if (s + 1 < steps.length) {
@@ -1516,17 +1554,7 @@ function processLocationUpdate(lat, lon, spdMps, hdg) {
 
   if (nextStep) {
     setManeuverUI(nextStep, secondStep, distToNext, gapToSecond, routeObj.title);
-    if (map) {
-      if (!turnMarker) {
-        const dotEl = document.createElement("div");
-        dotEl.className = "turn-target-dot";
-        turnMarker = new maplibregl.Marker({ element: dotEl })
-          .setLngLat([nextStep.lon, nextStep.lat])
-          .addTo(map);
-      } else {
-        turnMarker.setLngLat([nextStep.lon, nextStep.lat]);
-      }
-    }
+    setTurnMarkerAt(nextStep.lon, nextStep.lat);
   }
 }
 
