@@ -5,101 +5,150 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0e0f12">
+<meta name="theme-color" content="#0b0c10">
 <title>Brommer Nav — 55 km/h</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   :root {
-    --bg: #0e0f12;
-    --panel: rgba(18, 20, 26, 0.94);
-    --border: #262934;
+    --bg: #0b0c10;
+    --surface: rgba(16, 18, 24, 0.92);
+    --surface-solid: #12141c;
+    --border: rgba(255, 255, 255, 0.09);
     --text: #f3f4f6;
-    --muted: #9ca3af;
+    --muted: #8b93a6;
     --accent: #3b82f6;
+    --accent-bright: #60a5fa;
     --green: #10b981;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
     margin: 0; padding: 0; width: 100%; height: 100dvh;
     background: var(--bg); color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", system-ui, sans-serif;
     overflow: hidden; user-select: none;
+    -webkit-font-smoothing: antialiased;
   }
-  #map { position: absolute; inset: 0; z-index: 1; background: #0e0f12; }
+  #map { position: absolute; inset: 0; z-index: 1; background: #0b0c10; }
+  .leaflet-container { background: #0b0c10; }
 
-  /* Top Turn-by-Turn Navigation Banner */
-  .nav-banner {
+  /* Top Turn-by-Turn Navigation Stack */
+  .top-stack {
     position: absolute;
     top: calc(env(safe-area-inset-top, 12px) + 8px);
     left: 12px; right: 12px;
     z-index: 20;
-    background: var(--panel);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    pointer-events: none;
+  }
+  .nav-banner {
+    pointer-events: auto;
+    background: var(--surface);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: 18px;
     padding: 14px 16px;
     display: flex;
     align-items: center;
     gap: 14px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
   }
   .turn-box {
-    width: 52px; height: 52px;
-    border-radius: 12px;
-    background: #1d2230;
-    border: 1px solid #2e364f;
+    width: 54px; height: 54px;
+    border-radius: 14px;
+    background: rgba(59, 130, 246, 0.14);
+    border: 1px solid rgba(96, 165, 250, 0.28);
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
-    color: #60a5fa;
+    color: var(--accent-bright);
   }
   .turn-info { flex: 1; min-width: 0; }
+  .turn-dist-row {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+  }
   .turn-dist {
-    font-size: 24px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1;
+    font-size: 26px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.05;
     color: #ffffff;
+    font-variant-numeric: tabular-nums;
+  }
+  .gps-badge {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.03em;
+    padding: 3px 8px; border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .gps-badge.live {
+    background: rgba(16, 185, 129, 0.14);
+    color: #34d399;
+    border-color: rgba(16, 185, 129, 0.3);
   }
   .turn-street {
-    font-size: 15px; font-weight: 500; color: #d1d5db;
+    font-size: 15.5px; font-weight: 600; color: #e5e7eb;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    margin-top: 3px;
+    margin-top: 4px;
   }
   .turn-sub {
     font-size: 12px; color: var(--muted); margin-top: 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
 
-  /* Route & Direction Selector Pills */
+  /* Secondary "Then" Turn Pill */
+  .then-banner {
+    pointer-events: auto;
+    align-self: flex-start;
+    background: rgba(16, 18, 24, 0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 6px 12px;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    color: #d1d5db;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  }
+  .then-banner.visible { display: inline-flex; }
+  .then-lbl { color: var(--muted); font-weight: 500; }
+
+  /* Route & Direction Selector Bar */
   .top-controls {
-    position: absolute;
-    top: calc(env(safe-area-inset-top, 12px) + 96px);
-    left: 12px; right: 12px;
-    z-index: 20;
+    pointer-events: auto;
     display: flex; gap: 6px; overflow-x: auto;
     scrollbar-width: none;
+    padding-bottom: 2px;
   }
   .top-controls::-webkit-scrollbar { display: none; }
   .pill {
-    background: var(--panel);
+    background: var(--surface);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     border: 1px solid var(--border);
     color: var(--muted);
     padding: 7px 12px;
     border-radius: 10px;
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 600;
     white-space: nowrap;
     cursor: pointer;
+    transition: all 0.15s ease;
   }
   .pill.active {
-    background: #1e293b;
+    background: rgba(37, 99, 235, 0.22);
     color: #ffffff;
-    border-color: #3b82f6;
+    border-color: rgba(96, 165, 250, 0.55);
   }
 
-  /* Floating Right Map Buttons */
+  /* Floating Right Action Buttons */
   .map-tools {
     position: absolute;
     right: 12px;
-    bottom: calc(env(safe-area-inset-bottom, 16px) + 152px);
+    bottom: calc(env(safe-area-inset-bottom, 16px) + 158px);
     z-index: 20;
     display: flex;
     flex-direction: column;
@@ -107,77 +156,118 @@
   }
   .tool-btn {
     width: 44px; height: 44px;
-    border-radius: 12px;
-    background: var(--panel);
+    border-radius: 13px;
+    background: var(--surface);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--border);
-    color: var(--text);
+    color: #d1d5db;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.4);
-    font-size: 11px; font-weight: 700;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+    transition: all 0.15s ease;
   }
-  .tool-btn.active { border-color: var(--accent); color: #60a5fa; }
+  .tool-btn.active {
+    border-color: rgba(96, 165, 250, 0.6);
+    color: var(--accent-bright);
+    background: rgba(37, 99, 235, 0.18);
+  }
 
-  /* Bottom Handlebar HUD */
+  /* Bottom Handlebar Cockpit HUD */
   .bottom-hud {
     position: absolute;
     bottom: calc(env(safe-area-inset-bottom, 12px) + 8px);
     left: 12px; right: 12px;
     z-index: 20;
-    background: var(--panel);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: var(--surface);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 12px 14px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+    border-radius: 18px;
+    padding: 12px 14px 14px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65);
+    overflow: hidden;
+  }
+  .progress-track {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #3b82f6, #10b981);
+    transition: width 0.3s ease;
   }
   .metrics-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
-    padding-bottom: 10px;
+    padding-top: 2px;
+    padding-bottom: 11px;
     border-bottom: 1px solid var(--border);
     text-align: center;
   }
   .metric-val {
-    font-size: 20px; font-weight: 700; color: #ffffff;
+    font-size: 21px; font-weight: 700; color: #ffffff;
     font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+  .metric-unit {
+    font-size: 12px; font-weight: 500; color: var(--muted); margin-left: 2px;
   }
   .metric-lbl {
-    font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em;
+    font-size: 10.5px; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.05em;
     margin-top: 2px;
   }
   .hud-actions {
-    display: flex; gap: 8px; margin-top: 10px;
+    display: flex; gap: 8px; margin-top: 11px;
   }
   .btn-primary {
     flex: 1;
     background: #2563eb;
     color: #ffffff;
-    border: none;
-    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 11px;
     padding: 11px 14px;
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 600;
     cursor: pointer;
     text-align: center;
-    text-decoration: none;
+    letter-spacing: -0.01em;
+    transition: background 0.15s ease;
   }
   .btn-primary.following {
     background: #059669;
   }
   .btn-secondary {
-    background: #1f2430;
+    background: rgba(255, 255, 255, 0.06);
     color: #e5e7eb;
-    border: 1px solid #32394a;
-    border-radius: 10px;
-    padding: 11px 12px;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    padding: 11px 13px;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
     text-decoration: none;
     white-space: nowrap;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  /* Custom GPS Navigation Puck */
+  .gps-puck-wrap {
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    filter: drop-shadow(0 3px 8px rgba(37, 99, 235, 0.65));
+  }
+  .turn-dot-pulse {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 3px solid #3b82f6;
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.9);
   }
 </style>
 </head>
@@ -185,51 +275,79 @@
 
 <div id="map"></div>
 
-<div class="nav-banner">
-  <div class="turn-box" id="turn-icon">
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 19V5M5 12l7-7 7 7"/>
-    </svg>
+<div class="top-stack">
+  <div class="nav-banner">
+    <div class="turn-box" id="turn-icon">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 19V5M5 12l7-7 7 7"/>
+      </svg>
+    </div>
+    <div class="turn-info">
+      <div class="turn-dist-row">
+        <div class="turn-dist" id="turn-dist">39,2 km</div>
+        <div class="gps-badge" id="gps-badge">STANDBY</div>
+      </div>
+      <div class="turn-street" id="turn-street">1. Het Lint & De Meernbrug</div>
+      <div class="turn-sub" id="turn-sub">Vaste 55 km/h route · geen herberekening</div>
+    </div>
   </div>
-  <div class="turn-info">
-    <div class="turn-dist" id="turn-dist">Route gereed</div>
-    <div class="turn-street" id="turn-street">Tik op Start GPS voor live navigatie</div>
-    <div class="turn-sub" id="turn-sub">100% vaste route · geen herberekening</div>
-  </div>
-</div>
 
-<div class="top-controls">
-  <button class="pill active" id="dir-heen" onclick="setDir('heen')">Heen (Werk)</button>
-  <button class="pill" id="dir-terug" onclick="setDir('terug')">Terug (Huis)</button>
-  <button class="pill active" id="rt-r1" onclick="setRoute('r1')">1. Het Lint (39,2 km)</button>
-  <button class="pill" id="rt-r2" onclick="setRoute('r2')">2. Dafne (38,2 km)</button>
-  <button class="pill" id="rt-r3" onclick="setRoute('r3')">3. Polder (40,3 km)</button>
+  <div class="then-banner" id="then-banner">
+    <span class="then-lbl">Daarna:</span>
+    <span id="then-text">Rechtdoor</span>
+  </div>
+
+  <div class="top-controls">
+    <button class="pill active" id="dir-heen" onclick="setDir('heen')">Heen · Utrecht</button>
+    <button class="pill" id="dir-terug" onclick="setDir('terug')">Terug · Amstelveen</button>
+    <button class="pill active" id="rt-r1" onclick="setRoute('r1')">1. Het Lint (39,2)</button>
+    <button class="pill" id="rt-r2" onclick="setRoute('r2')">2. Dafne (38,2)</button>
+    <button class="pill" id="rt-r3" onclick="setRoute('r3')">3. Polder (40,3)</button>
+  </div>
 </div>
 
 <div class="map-tools">
-  <button class="tool-btn" id="btn-theme" onclick="toggleMapTheme()" title="Wissel kaartstijl">DAG</button>
-  <button class="tool-btn" id="btn-center" onclick="recenterMap()" title="Centreer op GPS">GPS</button>
-  <button class="tool-btn" onclick="fitFullRoute()" title="Toon hele route">OVERZ</button>
+  <button class="tool-btn" id="btn-theme" onclick="toggleMapTheme()" aria-label="Kaartthema">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+    </svg>
+  </button>
+  <button class="tool-btn" id="btn-center" onclick="recenterMap()" aria-label="Centreer op GPS">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+    </svg>
+  </button>
+  <button class="tool-btn" onclick="fitFullRoute()" aria-label="Volledige route">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+    </svg>
+  </button>
 </div>
 
 <div class="bottom-hud">
+  <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
   <div class="metrics-grid">
     <div>
-      <div class="metric-val" id="val-speed">0 km/h</div>
+      <div class="metric-val"><span id="val-speed">0</span><span class="metric-unit">km/h</span></div>
       <div class="metric-lbl">Snelheid</div>
     </div>
     <div>
-      <div class="metric-val" id="val-rem">39,2 km</div>
+      <div class="metric-val"><span id="val-rem">39,2</span><span class="metric-unit">km</span></div>
       <div class="metric-lbl">Resterend</div>
     </div>
     <div>
-      <div class="metric-val" id="val-eta">~44 min</div>
-      <div class="metric-lbl">Aankomst (55)</div>
+      <div class="metric-val" id="val-eta">~44m</div>
+      <div class="metric-lbl">Aankomst</div>
     </div>
   </div>
   <div class="hud-actions">
-    <button class="btn-primary" id="btn-start" onclick="toggleTracking()">Start Live GPS Cockpit</button>
-    <a class="btn-secondary" id="btn-gmaps" href="#" target="_blank" rel="noopener">Google Maps</a>
+    <button class="btn-primary" id="btn-start" onclick="toggleTracking()">Start GPS Navigatie</button>
+    <a class="btn-secondary" id="btn-gmaps" href="#" target="_blank" rel="noopener">
+      <span>Google Maps</span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 17L17 7M7 7h10v10"/>
+      </svg>
+    </a>
   </div>
 </div>
 
@@ -237,11 +355,14 @@
 let ROUTES = {};
 let curRoute = "r1";
 let curDir = "heen";
-let map, tileLayer, routePolyline, routeGlow, userMarker, accuracyCircle, nextStepMarker;
+let map, tileLayer;
+let routeBgLine, routeTraveledLine, routeAheadGlow, routeAheadLine;
+let startMarker, endMarker, turnMarker, userMarker, accuracyCircle;
 let watchId = null;
 let isFollowing = false;
 let lightTheme = false;
 let wakeLockObj = null;
+let lastHeading = 0;
 
 const params = new URLSearchParams(location.search);
 if (params.get("route") && ["r1","r2","r3"].includes(params.get("route"))) curRoute = params.get("route");
@@ -262,10 +383,10 @@ function setTileTheme(light) {
   lightTheme = light;
   if (tileLayer) map.removeLayer(tileLayer);
   const url = light
-    ? "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+    ? "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
     : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
-  tileLayer = L.tileLayer(url, { maxZoom: 19 }).addTo(map);
-  document.getElementById("btn-theme").textContent = light ? "NACHT" : "DAG";
+  tileLayer = L.tileLayer(url, { maxZoom: 20 }).addTo(map);
+  document.getElementById("btn-theme").classList.toggle("active", light);
 }
 
 function toggleMapTheme() { setTileTheme(!lightTheme); }
@@ -284,13 +405,27 @@ function getTurnSvg(mod, type) {
 }
 
 function modToDutch(mod, type) {
-  if (type === "roundabout" || type === "rotary") return "Rotonde op naar";
+  if (type === "roundabout" || type === "rotary") return "Rotonde naar";
   if (!mod) return "Volg";
   if (mod === "left" || mod === "sharp left") return "Linksaf naar";
-  if (mod === "slight left") return "Houd links aan naar";
+  if (mod === "slight left") return "Links aanhouden op";
   if (mod === "right" || mod === "sharp right") return "Rechtsaf naar";
-  if (mod === "slight right") return "Houd rechts aan naar";
+  if (mod === "slight right") return "Rechts aanhouden op";
   return "Rechtdoor op";
+}
+
+function createPuckIcon(deg) {
+  return L.divIcon({
+    className: "",
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+    html: `<div class="gps-puck-wrap" style="transform: rotate(${deg}deg);">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <circle cx="16" cy="16" r="14" fill="#2563eb" stroke="#ffffff" stroke-width="2.5"/>
+        <path d="M16 7l5.5 14-5.5-3.2L10.5 21 16 7z" fill="#ffffff"/>
+      </svg>
+    </div>`
+  });
 }
 
 function renderActiveRoute(fit = true) {
@@ -301,33 +436,45 @@ function renderActiveRoute(fit = true) {
 
   ["r1","r2","r3"].forEach(k => document.getElementById("rt-" + k).classList.toggle("active", k === curRoute));
   ["heen","terug"].forEach(d => document.getElementById("dir-" + d).classList.toggle("active", d === curDir));
-
   document.getElementById("btn-gmaps").href = curDir === "heen" ? r.gmaps_heen : r.gmaps_terug;
 
-  if (routeGlow) map.removeLayer(routeGlow);
-  if (routePolyline) map.removeLayer(routePolyline);
+  [routeBgLine, routeTraveledLine, routeAheadGlow, routeAheadLine, startMarker, endMarker, turnMarker].forEach(l => {
+    if (l) map.removeLayer(l);
+  });
 
-  routeGlow = L.polyline(data.coords, { color: r.color, weight: 10, opacity: 0.25, lineCap: "round" }).addTo(map);
-  routePolyline = L.polyline(data.coords, { color: r.color, weight: 5, opacity: 0.95, lineCap: "round" }).addTo(map);
+  routeTraveledLine = L.polyline([], { color: "#475569", weight: 5, opacity: 0.7, lineCap: "round" }).addTo(map);
+  routeAheadGlow = L.polyline(data.coords, { color: r.color, weight: 12, opacity: 0.24, lineCap: "round", lineJoin: "round" }).addTo(map);
+  routeAheadLine = L.polyline(data.coords, { color: r.color, weight: 5.5, opacity: 0.98, lineCap: "round", lineJoin: "round" }).addTo(map);
+
+  const firstPt = data.coords[0];
+  const lastPt = data.coords[data.coords.length - 1];
+  startMarker = L.circleMarker(firstPt, { radius: 6, color: "#ffffff", weight: 2, fillColor: "#10b981", fillOpacity: 1 }).addTo(map);
+  endMarker = L.circleMarker(lastPt, { radius: 7, color: "#ffffff", weight: 2.5, fillColor: "#ef4444", fillOpacity: 1 }).addTo(map);
 
   const distKm = data.distance_km;
   const mins = Math.round((distKm / 55.0) * 60 + 2);
-  document.getElementById("val-rem").textContent = distKm.toFixed(1).replace(".", ",") + " km";
-  document.getElementById("val-eta").textContent = "~" + mins + " min";
+  document.getElementById("val-rem").textContent = distKm.toFixed(1).replace(".", ",");
+  document.getElementById("val-eta").textContent = "~" + mins + "m";
+  document.getElementById("progress-fill").style.width = "0%";
 
   if (!watchId && data.steps && data.steps.length > 1) {
     const s = data.steps[1];
     document.getElementById("turn-dist").textContent = distKm.toFixed(1).replace(".", ",") + " km";
-    document.getElementById("turn-street").textContent = r.title + " (" + (curDir === "heen" ? "Heen" : "Terug") + ")";
-    document.getElementById("turn-sub").textContent = "Eerste weg: " + s.name + " · Tik op Start Live GPS Cockpit";
+    document.getElementById("turn-street").textContent = r.title;
+    document.getElementById("turn-sub").textContent = (curDir === "heen" ? "Amstelveen → Utrecht" : "Utrecht → Amstelveen") + " · Start via " + s.name;
+    document.getElementById("then-banner").classList.remove("visible");
   }
 
-  if (fit) map.fitBounds(routePolyline.getBounds(), { padding: [110, 35] });
+  if (fit) map.fitBounds(routeAheadLine.getBounds(), { padding: [140, 32] });
 }
 
 function setRoute(id) { curRoute = id; renderActiveRoute(!isFollowing); }
 function setDir(dir) { curDir = dir; renderActiveRoute(!isFollowing); }
-function fitFullRoute() { isFollowing = false; document.getElementById("btn-center").classList.remove("active"); if (routePolyline) map.fitBounds(routePolyline.getBounds(), { padding: [110, 35] }); }
+function fitFullRoute() {
+  isFollowing = false;
+  document.getElementById("btn-center").classList.remove("active");
+  if (routeAheadLine) map.fitBounds(routeAheadLine.getBounds(), { padding: [140, 32] });
+}
 
 function recenterMap() {
   isFollowing = true;
@@ -346,8 +493,17 @@ function haversineMeters(lat1, lon1, lat2, lon2) {
   return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+function bearingDeg(lat1, lon1, lat2, lon2) {
+  const toRad = Math.PI / 180;
+  const toDeg = 180 / Math.PI;
+  const dLon = (lon2 - lon1) * toRad;
+  const y = Math.sin(dLon) * Math.cos(lat2 * toRad);
+  const x = Math.cos(lat1 * toRad) * Math.sin(lat2 * toRad) - Math.sin(lat1 * toRad) * Math.cos(lat2 * toRad) * Math.cos(dLon);
+  return (Math.atan2(y, x) * toDeg + 360) % 360;
+}
+
 function fmtMeters(m) {
-  if (m < 1000) return Math.round(m / 5) * 5 + " m";
+  if (m < 950) return Math.max(5, Math.round(m / 5) * 5) + " m";
   return (m / 1000).toFixed(1).replace(".", ",") + " km";
 }
 
@@ -359,23 +515,34 @@ async function requestWakeLock() {
   } catch (e) {}
 }
 
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && watchId !== null) {
+    requestWakeLock();
+  }
+});
+
 function toggleTracking() {
   const btn = document.getElementById("btn-start");
+  const badge = document.getElementById("gps-badge");
   if (watchId !== null) {
     navigator.geolocation.clearWatch(watchId);
     watchId = null;
     isFollowing = false;
-    btn.textContent = "Start Live GPS Cockpit";
+    btn.textContent = "Start GPS Navigatie";
     btn.classList.remove("following");
+    badge.textContent = "STANDBY";
+    badge.classList.remove("live");
     return;
   }
   requestWakeLock();
   isFollowing = true;
   document.getElementById("btn-center").classList.add("active");
-  btn.textContent = "GPS Actief (Volgt Route)";
+  btn.textContent = "Actieve Navigatie (Scherm Aan)";
   btn.classList.add("following");
+  badge.textContent = "GPS LIVE";
+  badge.classList.add("live");
 
-  watchId = navigator.geolocation.watchPosition(onGpsUpdate, (err) => {
+  watchId = navigator.geolocation.watchPosition(onGpsUpdate, () => {
     document.getElementById("turn-sub").textContent = "Geef locatie-toegang in Safari voor live GPS";
   }, {
     enableHighAccuracy: true,
@@ -390,30 +557,14 @@ function onGpsUpdate(pos) {
   const acc = pos.coords.accuracy || 10;
   const spdMs = pos.coords.speed;
   const kmh = (spdMs !== null && spdMs >= 0) ? Math.round(spdMs * 3.6) : 0;
-  document.getElementById("val-speed").textContent = kmh + " km/h";
-
-  const latlng = [lat, lon];
-  if (!userMarker) {
-    userMarker = L.circleMarker(latlng, {
-      radius: 8, color: "#ffffff", weight: 3, fillColor: "#2563eb", fillOpacity: 1
-    }).addTo(map);
-    accuracyCircle = L.circle(latlng, { radius: acc, color: "#3b82f6", weight: 1, fillOpacity: 0.12 }).addTo(map);
-  } else {
-    userMarker.setLatLng(latlng);
-    accuracyCircle.setLatLng(latlng);
-    accuracyCircle.setRadius(acc);
-  }
-
-  if (isFollowing) {
-    map.setView(latlng, Math.max(map.getZoom(), 16), { animate: true });
-  }
+  document.getElementById("val-speed").textContent = String(kmh);
 
   const r = ROUTES[curRoute];
   if (!r) return;
   const data = r[curDir];
   if (!data || !data.coords.length) return;
 
-  // Find closest point on route geometry
+  // Closest vertex on route
   let bestIdx = 0;
   let bestDist = Infinity;
   for (let i = 0; i < data.coords.length; i++) {
@@ -421,39 +572,90 @@ function onGpsUpdate(pos) {
     if (d < bestDist) { bestDist = d; bestIdx = i; }
   }
 
-  // Remaining distance along coords from bestIdx to end
+  // Compute heading from GPS or route tangent
+  if (pos.coords.heading !== null && !isNaN(pos.coords.heading) && pos.coords.heading >= 0 && kmh > 4) {
+    lastHeading = pos.coords.heading;
+  } else if (bestIdx < data.coords.length - 1) {
+    lastHeading = bearingDeg(data.coords[bestIdx][0], data.coords[bestIdx][1], data.coords[bestIdx+1][0], data.coords[bestIdx+1][1]);
+  }
+
+  const latlng = [lat, lon];
+  if (!userMarker) {
+    accuracyCircle = L.circle(latlng, { radius: acc, color: "#3b82f6", weight: 1, fillOpacity: 0.1 }).addTo(map);
+    userMarker = L.marker(latlng, { icon: createPuckIcon(lastHeading), zIndexOffset: 1000 }).addTo(map);
+  } else {
+    userMarker.setLatLng(latlng);
+    userMarker.setIcon(createPuckIcon(lastHeading));
+    accuracyCircle.setLatLng(latlng);
+    accuracyCircle.setRadius(Math.min(acc, 80));
+  }
+
+  // Split polyline into traveled vs ahead
+  const traveledCoords = data.coords.slice(0, bestIdx + 1);
+  const aheadCoords = data.coords.slice(bestIdx);
+  routeTraveledLine.setLatLngs(traveledCoords);
+  routeAheadGlow.setLatLngs(aheadCoords);
+  routeAheadLine.setLatLngs(aheadCoords);
+
+  if (isFollowing) {
+    map.setView(latlng, Math.max(map.getZoom(), 16), { animate: true });
+  }
+
+  // Remaining distance along locked route
   let remMeters = 0;
   for (let i = bestIdx; i < data.coords.length - 1; i++) {
     remMeters += haversineMeters(data.coords[i][0], data.coords[i][1], data.coords[i+1][0], data.coords[i+1][1]);
   }
   const remKm = remMeters / 1000.0;
-  document.getElementById("val-rem").textContent = remKm.toFixed(1).replace(".", ",") + " km";
+  document.getElementById("val-rem").textContent = remKm.toFixed(1).replace(".", ",");
 
-  const effSpeed = kmh > 15 ? kmh : 52;
+  const totalMeters = data.distance_km * 1000;
+  const pct = Math.min(100, Math.max(0, ((totalMeters - remMeters) / totalMeters) * 100));
+  document.getElementById("progress-fill").style.width = pct.toFixed(1) + "%";
+
+  const effSpeed = kmh > 18 ? kmh : 52;
   const remMins = Math.max(1, Math.round((remKm / effSpeed) * 60));
   const etaDate = new Date(Date.now() + remMins * 60000);
   const hh = String(etaDate.getHours()).padStart(2, "0");
   const mm = String(etaDate.getMinutes()).padStart(2, "0");
-  document.getElementById("val-eta").textContent = `${hh}:${mm} (${remMins}m)`;
+  document.getElementById("val-eta").textContent = `${hh}:${mm}`;
 
-  // Find next upcoming turn step ahead of current progress
-  const totalMeters = data.distance_km * 1000;
+  // Next turn step & secondary "Then" step
   const traveledMeters = Math.max(0, totalMeters - remMeters);
-  let nextStep = data.steps[data.steps.length - 1];
+  let nextIdx = data.steps.length - 1;
   for (let i = 0; i < data.steps.length; i++) {
-    if (data.steps[i].cum > traveledMeters + 20) {
-      nextStep = data.steps[i];
+    if (data.steps[i].cum > traveledMeters + 18) {
+      nextIdx = i;
       break;
     }
   }
+  const nextStep = data.steps[nextIdx];
+  const afterStep = (nextIdx + 1 < data.steps.length) ? data.steps[nextIdx + 1] : null;
+
   if (nextStep) {
     const distToTurn = haversineMeters(lat, lon, nextStep.lat, nextStep.lon);
     document.getElementById("turn-icon").innerHTML = getTurnSvg(nextStep.mod, nextStep.type);
     document.getElementById("turn-dist").textContent = fmtMeters(distToTurn);
     document.getElementById("turn-street").textContent = `${modToDutch(nextStep.mod, nextStep.type)} ${nextStep.name}`;
     document.getElementById("turn-sub").textContent = bestDist > 120
-      ? `Afstand tot route-lijn: ${Math.round(bestDist)} m`
-      : `Op optimale route · ${r.title}`;
+      ? `Afstand tot vaste route: ${Math.round(bestDist)} m`
+      : `Op vaste route · nog ${remMins} min (${remKm.toFixed(1).replace(".", ",")} km)`;
+
+    if (!turnMarker) {
+      turnMarker = L.marker([nextStep.lat, nextStep.lon], {
+        icon: L.divIcon({ className: "", iconSize: [14, 14], iconAnchor: [7, 7], html: `<div class="turn-dot-pulse"></div>` })
+      }).addTo(map);
+    } else {
+      turnMarker.setLatLng([nextStep.lat, nextStep.lon]);
+    }
+
+    const thenEl = document.getElementById("then-banner");
+    if (afterStep && nextStep.dist < 450) {
+      document.getElementById("then-text").textContent = `${modToDutch(afterStep.mod, afterStep.type)} ${afterStep.name} (${fmtMeters(nextStep.dist)})`;
+      thenEl.classList.add("visible");
+    } else {
+      thenEl.classList.remove("visible");
+    }
   }
 }
 
