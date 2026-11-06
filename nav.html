@@ -12,11 +12,9 @@
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <style>
   :root {
-    --bg-glass: rgba(13, 16, 23, 0.90);
-    --bg-glass-heavy: rgba(10, 12, 18, 0.95);
-    --bg-elevated: rgba(255, 255, 255, 0.06);
-    --border-subtle: rgba(255, 255, 255, 0.11);
-    --border-strong: rgba(255, 255, 255, 0.20);
+    --bg-glass: rgba(13, 16, 23, 0.92);
+    --bg-glass-heavy: rgba(10, 12, 18, 0.96);
+    --border-subtle: rgba(255, 255, 255, 0.12);
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
     --text-muted: #64748b;
@@ -24,7 +22,6 @@
     --accent-bright: #60a5fa;
     --accent-glow: rgba(59, 130, 246, 0.35);
     --green: #10b981;
-    --green-glow: rgba(16, 185, 129, 0.25);
     --amber: #f59e0b;
     --danger: #ef4444;
   }
@@ -94,7 +91,7 @@
 
   .dir-group {
     display: flex;
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 10px;
     padding: 2px;
     gap: 2px;
@@ -106,10 +103,10 @@
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.03em;
-    padding: 6px 10px;
+    padding: 6px 9px;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.16s ease;
+    transition: all 0.15s ease;
     white-space: nowrap;
   }
   .dir-btn.active {
@@ -141,17 +138,18 @@
     color: var(--text-secondary);
     font-size: 11px;
     font-weight: 600;
-    padding: 6px 8px;
+    padding: 6px 7px;
     border-radius: 9px;
     cursor: pointer;
     text-align: center;
     white-space: nowrap;
-    transition: all 0.16s ease;
+    transition: all 0.15s ease;
   }
   .route-pill.active {
-    background: rgba(59, 130, 246, 0.16);
-    border-color: rgba(96, 165, 250, 0.45);
+    background: rgba(59, 130, 246, 0.20);
+    border-color: rgba(96, 165, 250, 0.55);
     color: #ffffff;
+    font-weight: 700;
   }
 
   /* Primary Turn-by-Turn Maneuver Card */
@@ -161,10 +159,10 @@
     -webkit-backdrop-filter: blur(24px);
     border: 1px solid var(--border-subtle);
     border-radius: 18px;
-    padding: 13px 15px;
+    padding: 12px 14px;
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 13px;
     box-shadow: 0 14px 34px rgba(0, 0, 0, 0.6);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
@@ -174,8 +172,8 @@
   }
 
   .turn-icon-box {
-    width: 54px;
-    height: 54px;
+    width: 52px;
+    height: 52px;
     border-radius: 14px;
     background: rgba(59, 130, 246, 0.14);
     border: 1px solid rgba(59, 130, 246, 0.35);
@@ -192,8 +190,8 @@
     color: var(--green);
   }
   .turn-icon-box svg {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
   }
 
   .turn-body {
@@ -202,12 +200,12 @@
   }
   .turn-top-row {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     gap: 8px;
   }
   .turn-dist {
-    font-size: 27px;
+    font-size: 25px;
     font-weight: 800;
     letter-spacing: -0.03em;
     line-height: 1.05;
@@ -215,24 +213,34 @@
     font-variant-numeric: tabular-nums;
   }
   .turn-ActionTag {
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
     color: var(--accent-bright);
-    background: rgba(59, 130, 246, 0.14);
+    background: rgba(59, 130, 246, 0.15);
     padding: 3px 8px;
     border-radius: 6px;
+    white-space: nowrap;
   }
   .maneuver-card.imminent .turn-ActionTag {
     color: var(--green);
     background: rgba(16, 185, 129, 0.16);
   }
   .turn-street {
-    font-size: 15px;
+    font-size: 14.5px;
     font-weight: 600;
-    color: #cbd5e1;
+    color: #e2e8f0;
     margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .turn-meta {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-top: 2px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -244,13 +252,13 @@
     display: none;
     align-items: center;
     gap: 8px;
-    background: rgba(13, 16, 23, 0.88);
+    background: rgba(13, 16, 23, 0.90);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--border-subtle);
     border-radius: 11px;
     padding: 6px 12px;
-    margin-top: -3px;
+    margin-top: -2px;
     font-size: 12px;
     font-weight: 600;
     color: var(--text-secondary);
@@ -258,12 +266,6 @@
   }
   .then-banner.visible {
     display: inline-flex;
-  }
-  .then-banner svg {
-    width: 15px;
-    height: 15px;
-    color: var(--text-primary);
-    flex-shrink: 0;
   }
   .then-label {
     color: var(--text-muted);
@@ -293,11 +295,11 @@
   .map-tools {
     position: absolute;
     right: 12px;
-    bottom: calc(max(14px, env(safe-area-inset-bottom)) + 110px);
+    bottom: calc(max(14px, env(safe-area-inset-bottom)) + 114px);
     z-index: 1000;
     display: flex;
     flex-direction: column;
-    gap: 9px;
+    gap: 8px;
   }
   .tool-btn {
     width: 48px;
@@ -314,12 +316,13 @@
     justify-content: center;
     gap: 2px;
     cursor: pointer;
+    text-decoration: none;
     box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
-    transition: all 0.16s ease;
+    transition: all 0.15s ease;
   }
   .tool-btn svg {
-    width: 20px;
-    height: 20px;
+    width: 19px;
+    height: 19px;
   }
   .tool-sub {
     font-size: 8.5px;
@@ -346,7 +349,7 @@
   .recenter-pill {
     position: absolute;
     left: 12px;
-    bottom: calc(max(14px, env(safe-area-inset-bottom)) + 110px);
+    bottom: calc(max(14px, env(safe-area-inset-bottom)) + 114px);
     z-index: 1000;
     display: none;
     align-items: center;
@@ -361,7 +364,7 @@
     letter-spacing: 0.01em;
     cursor: pointer;
     box-shadow: 0 10px 28px rgba(37, 99, 235, 0.55);
-    transition: transform 0.15s ease, opacity 0.15s ease;
+    transition: transform 0.15s ease;
   }
   .recenter-pill.visible {
     display: inline-flex;
@@ -370,8 +373,8 @@
     transform: scale(0.95);
   }
   .recenter-pill svg {
-    width: 18px;
-    height: 18px;
+    width: 17px;
+    height: 17px;
   }
 
   /* BOTTOM TELEMETRY HUD */
@@ -392,14 +395,14 @@
 
   .progress-track {
     width: 100%;
-    height: 3px;
-    background: rgba(255, 255, 255, 0.07);
+    height: 3.5px;
+    background: rgba(255, 255, 255, 0.08);
   }
   .progress-fill {
     height: 100%;
     width: 0%;
     background: linear-gradient(90deg, #3b82f6, #10b981);
-    transition: width 0.4s ease;
+    transition: width 0.35s ease;
   }
 
   .hud-main {
@@ -414,7 +417,7 @@
     display: flex;
     align-items: baseline;
     gap: 4px;
-    min-width: 76px;
+    min-width: 74px;
   }
   .speed-val {
     font-size: 32px;
@@ -477,7 +480,7 @@
     letter-spacing: 0.04em;
     padding: 4px 8px;
     border-radius: 7px;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.06);
     color: var(--text-secondary);
   }
   .gps-dot {
@@ -487,7 +490,7 @@
     background: var(--amber);
   }
   .gps-badge.locked {
-    background: rgba(16, 185, 129, 0.14);
+    background: rgba(16, 185, 129, 0.15);
     color: #34d399;
   }
   .gps-badge.locked .gps-dot {
@@ -564,10 +567,11 @@
     </div>
     <div class="turn-body">
       <div class="turn-top-row">
-        <div class="turn-dist" id="turn-dist">-- m</div>
-        <div class="turn-ActionTag" id="turn-tag">VOLG ROUTE</div>
+        <div class="turn-dist" id="turn-dist">39,2 km</div>
+        <div class="turn-ActionTag" id="turn-tag">ROUTE 1 · HEEN</div>
       </div>
-      <div class="turn-street" id="turn-street">Wachten op gps-signaal...</div>
+      <div class="turn-street" id="turn-street">1. Het Lint &amp; De Meernbrug</div>
+      <div class="turn-meta" id="turn-meta">Aanbevolen · 4 stoplichten · ~44 min op 55 km/h</div>
     </div>
   </div>
 
@@ -578,7 +582,7 @@
   </div>
 
   <div class="offroute-banner" id="offroute-banner">
-    Van route afgeweken — blauwe lijn op kaart toont het vaste pad
+    Van route afgeweken — gekleurde lijn op kaart toont het vaste pad
   </div>
 </div>
 
@@ -587,7 +591,7 @@
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
     <polygon points="12 2 19 21 12 17 5 21 12 2"/>
   </svg>
-  <span id="recenter-label">Centreren &amp; Kompas</span>
+  <span id="recenter-label">Start 3D Navigatie</span>
 </button>
 
 <div class="map-tools">
@@ -601,7 +605,7 @@
   </button>
 
   <!-- Recenter on User GPS -->
-  <button class="tool-btn active" id="btn-follow" onclick="engageNavigation()" title="Centreer op gps">
+  <button class="tool-btn" id="btn-follow" onclick="engageNavigation()" title="Centreer op gps">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="7"/>
       <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
@@ -610,11 +614,11 @@
       <line x1="2" y1="12" x2="5" y2="12"/>
       <line x1="19" y1="12" x2="22" y2="12"/>
     </svg>
-    <span class="tool-sub">GPS</span>
+    <span class="tool-sub">CENTREER</span>
   </button>
 
   <!-- Full Route Overview -->
-  <button class="tool-btn" id="btn-overview" onclick="fitFullRoute()" title="Hele route tonen">
+  <button class="tool-btn active" id="btn-overview" onclick="fitFullRoute(true)" title="Hele route tonen">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="15 3 21 3 21 9"/>
       <polyline points="9 21 3 21 3 15"/>
@@ -624,14 +628,23 @@
     <span class="tool-sub">OVERZICHT</span>
   </button>
 
-  <!-- Day / Night Vector Style Toggle (Zero API key required) -->
+  <!-- Day / Night Instant Layer Switch (Never removes route layers!) -->
   <button class="tool-btn" id="btn-theme" onclick="toggleMapTheme()" title="Wissel Dag / Nacht kaart">
     <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="4"/>
       <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
     </svg>
-    <span class="tool-sub" id="lbl-theme">NACHT</span>
+    <span class="tool-sub" id="lbl-theme">DAGKAART</span>
   </button>
+
+  <!-- Direct Open in Google Maps App -->
+  <a class="tool-btn" id="btn-gmaps" href="#" target="_blank" rel="noopener" title="Open deze route in Google Maps">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z"/>
+      <circle cx="12" cy="9" r="2.5"/>
+    </svg>
+    <span class="tool-sub">MAPS APP</span>
+  </a>
 </div>
 
 <div class="bottom-hud">
@@ -645,13 +658,13 @@
     </div>
     <div class="metrics-grid">
       <div class="metric-cell">
-        <div class="metric-val" id="rem-dist">-- km</div>
+        <div class="metric-val" id="rem-dist">39,2 km</div>
         <div class="metric-lbl">Resterend</div>
       </div>
       <div class="metric-sep"></div>
       <div class="metric-cell">
-        <div class="metric-val" id="rem-time">-- min</div>
-        <div class="metric-lbl">Rijtijd</div>
+        <div class="metric-val" id="rem-time">44 min</div>
+        <div class="metric-lbl">Rijtijd (55)</div>
       </div>
       <div class="metric-sep"></div>
       <div class="metric-cell">
@@ -670,9 +683,11 @@
 </div>
 
 <script>
-// 100% Free Vector GL Styles (CARTO Protomaps Vector Tiles — No API Key Required)
-const STYLE_DARK  = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
-const STYLE_LIGHT = "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json";
+const ROUTE_META = {
+  r1: { short: "ROUTE 1", lights: "4 stoplichten", mins: 44, color: "#3b82f6", core: "#60a5fa" },
+  r2: { short: "ROUTE 2", lights: "13 stoplichten", mins: 43, color: "#10b981", core: "#34d399" },
+  r3: { short: "ROUTE 3", lights: "2 stoplichten", mins: 46, color: "#f59e0b", core: "#fbbf24" }
+};
 
 let NAV_DATA = null;
 let curRoute = "r1";
@@ -680,18 +695,16 @@ let curDir = "heen";
 let lightTheme = false;
 
 let map = null;
-let styleReady = false;
 let userMarker = null;
 let turnMarker = null;
 let startMarker = null;
 let endMarker = null;
 
 // Navigation & Camera State
-let followUser = true;
-let courseUp = true; // true = 3D rotating course-up like Google Maps; false = 2D north-up
+let followUser = false; // Starts in route overview until user taps "Start 3D Navigatie" or starts moving
+let courseUp = true;    // true = 3D rotating course-up like Google Maps; false = 2D north-up
 let isDragging = false;
 let isEasing = false;
-let firstFixReceived = false;
 
 // Live Sensor State ([lon, lat] for MapLibre)
 let targetLngLat = null;
@@ -707,7 +720,7 @@ let compassGranted = false;
 let routeCoordsLatLon = []; // [[lat, lon], ...]
 let routeCoordsLngLat = []; // [[lon, lat], ...]
 let cumDist = [];
-let totalRouteMeters = 0;
+let totalRouteMeters = 39200;
 let currentSplitIdx = 0;
 
 const params = new URLSearchParams(window.location.search);
@@ -736,7 +749,6 @@ function calcBearing(lat1, lon1, lat2, lon2) {
   return (toDeg(Math.atan2(y, x)) + 360) % 360;
 }
 
-// Shortest-arc angular interpolation (handles 359° -> 1° wraparound smoothly)
 function angleDiff(from, to) {
   return ((to - from + 540) % 360) - 180;
 }
@@ -751,27 +763,146 @@ function createPuckElement() {
     <svg class="nav-puck-svg" viewBox="0 0 84 84">
       <defs>
         <radialGradient id="beamGrad" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.50"/>
+          <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.55"/>
           <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
         </radialGradient>
       </defs>
-      <!-- Forward radar cone pointing UP (0 deg) -->
-      <path d="M42 42 L16 6 A40 40 0 0 1 68 6 Z" fill="url(#beamGrad)"/>
-      <!-- Outer halo -->
-      <circle cx="42" cy="42" r="18" fill="rgba(59, 130, 246, 0.25)"/>
-      <!-- White shield + Blue directional navigation chevron -->
+      <path d="M42 42 L15 5 A42 42 0 0 1 69 5 Z" fill="url(#beamGrad)"/>
+      <circle cx="42" cy="42" r="18" fill="rgba(59, 130, 246, 0.28)"/>
       <circle cx="42" cy="42" r="14" fill="#ffffff"/>
-      <path d="M42 31 L50 49 L42 44.5 L34 49 Z" fill="#2563eb"/>
+      <path d="M42 30 L50.5 49 L42 44.5 L33.5 49 Z" fill="#2563eb"/>
     </svg>`;
   return wrap;
 }
 
+// Unified MapLibre Style with BOTH Night (Carto Dark Matter @2x) and Day (Carto Voyager @2x)
+// plus all GeoJSON route sources built-in from frame 0 -> Day/Night switch is instant and NEVER drops routes!
+function createUnifiedMapStyle() {
+  const emptyLine = { type: "Feature", geometry: { type: "LineString", coordinates: [] } };
+  return {
+    version: 8,
+    sources: {
+      "carto-dark": {
+        type: "raster",
+        tiles: [
+          "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
+          "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
+          "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png"
+        ],
+        tileSize: 256,
+        maxzoom: 20
+      },
+      "carto-light": {
+        type: "raster",
+        tiles: [
+          "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png",
+          "https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png",
+          "https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png"
+        ],
+        tileSize: 256,
+        maxzoom: 20
+      },
+      "alt-routes": {
+        type: "geojson",
+        data: { type: "FeatureCollection", features: [] }
+      },
+      "route-traveled": {
+        type: "geojson",
+        data: emptyLine
+      },
+      "route-ahead": {
+        type: "geojson",
+        data: emptyLine
+      }
+    },
+    layers: [
+      {
+        id: "basemap-dark",
+        type: "raster",
+        source: "carto-dark",
+        layout: { visibility: "visible" }
+      },
+      {
+        id: "basemap-light",
+        type: "raster",
+        source: "carto-light",
+        layout: { visibility: "none" }
+      },
+      {
+        id: "alt-routes-line",
+        type: "line",
+        source: "alt-routes",
+        layout: { "line-join": "round", "line-cap": "round" },
+        paint: {
+          "line-color": "#94a3b8",
+          "line-width": 4,
+          "line-opacity": 0.30,
+          "line-dasharray": [2, 2]
+        }
+      },
+      {
+        id: "route-traveled-line",
+        type: "line",
+        source: "route-traveled",
+        layout: { "line-join": "round", "line-cap": "round" },
+        paint: {
+          "line-color": "#64748b",
+          "line-width": 6,
+          "line-opacity": 0.55
+        }
+      },
+      {
+        id: "route-ahead-glow",
+        type: "line",
+        source: "route-ahead",
+        layout: { "line-join": "round", "line-cap": "round" },
+        paint: {
+          "line-color": "#3b82f6",
+          "line-width": 16,
+          "line-opacity": 0.28,
+          "line-blur": 4
+        }
+      },
+      {
+        id: "route-ahead-casing",
+        type: "line",
+        source: "route-ahead",
+        layout: { "line-join": "round", "line-cap": "round" },
+        paint: {
+          "line-color": "#1d4ed8",
+          "line-width": 9,
+          "line-opacity": 0.95
+        }
+      },
+      {
+        id: "route-ahead-core",
+        type: "line",
+        source: "route-ahead",
+        layout: { "line-join": "round", "line-cap": "round" },
+        paint: {
+          "line-color": "#60a5fa",
+          "line-width": 5.5,
+          "line-opacity": 1.0
+        }
+      }
+    ]
+  };
+}
+
 function initMap() {
+  // Sync initial button states with URL params
+  ["r1", "r2", "r3"].forEach(k => {
+    document.getElementById("rt-" + k).classList.toggle("active", k === curRoute);
+  });
+  ["heen", "terug"].forEach(d => {
+    document.getElementById("dir-" + d).classList.toggle("active", d === curDir);
+  });
+
   map = new maplibregl.Map({
     container: "map",
-    style: STYLE_DARK,
+    style: createUnifiedMapStyle(),
     center: [4.96, 52.175],
-    zoom: 10.8,
+    zoom: 10.6,
     pitch: 0,
     bearing: 0,
     attributionControl: false,
@@ -780,18 +911,13 @@ function initMap() {
     maxPitch: 65
   });
 
-  map.on("style.load", () => {
-    styleReady = true;
-    ensureRouteLayers();
-    updateRouteGeoJSON();
-  });
-
-  // Detect manual user pan/pinch to pause auto-follow and show "Centreren" pill
   const onUserGestureStart = (e) => {
     if (e && e.originalEvent) {
       isDragging = true;
-      followUser = false;
-      updateControlStates();
+      if (followUser) {
+        followUser = false;
+        updateControlStates();
+      }
     }
   };
   const onUserGestureEnd = () => {
@@ -812,13 +938,18 @@ function initMap() {
     }
   });
 
-  // Unlock iOS Compass + Screen Wake Lock on the very first touch anywhere
+  map.on("load", () => {
+    if (NAV_DATA) {
+      renderSelectedRoute(true);
+    }
+  });
+
   document.addEventListener("click", () => {
     requestCompassPermission();
     requestWakeLock();
   }, { once: true });
 
-  fetch("nav_routes.json?v=3")
+  fetch("nav_routes.json?v=4")
     .then(r => r.json())
     .then(data => {
       NAV_DATA = data;
@@ -829,116 +960,63 @@ function initMap() {
     });
 }
 
-function ensureRouteLayers() {
-  if (!map || !styleReady) return;
-
-  if (!map.getSource("route-traveled")) {
-    map.addSource("route-traveled", {
-      type: "geojson",
-      data: { type: "Feature", geometry: { type: "LineString", coordinates: [] } }
-    });
-  }
-  if (!map.getSource("route-ahead")) {
-    map.addSource("route-ahead", {
-      type: "geojson",
-      data: { type: "Feature", geometry: { type: "LineString", coordinates: [] } }
-    });
-  }
-
-  if (!map.getLayer("route-traveled-line")) {
-    map.addLayer({
-      id: "route-traveled-line",
-      type: "line",
-      source: "route-traveled",
-      layout: { "line-join": "round", "line-cap": "round" },
-      paint: {
-        "line-color": "#64748b",
-        "line-width": 6,
-        "line-opacity": 0.55
-      }
-    });
-  }
-
-  if (!map.getLayer("route-ahead-glow")) {
-    map.addLayer({
-      id: "route-ahead-glow",
-      type: "line",
-      source: "route-ahead",
-      layout: { "line-join": "round", "line-cap": "round" },
-      paint: {
-        "line-color": "#3b82f6",
-        "line-width": 16,
-        "line-opacity": 0.26,
-        "line-blur": 4
-      }
-    });
-  }
-
-  if (!map.getLayer("route-ahead-casing")) {
-    map.addLayer({
-      id: "route-ahead-casing",
-      type: "line",
-      source: "route-ahead",
-      layout: { "line-join": "round", "line-cap": "round" },
-      paint: {
-        "line-color": "#1d4ed8",
-        "line-width": 9,
-        "line-opacity": 0.95
-      }
-    });
-  }
-
-  if (!map.getLayer("route-ahead-core")) {
-    map.addLayer({
-      id: "route-ahead-core",
-      type: "line",
-      source: "route-ahead",
-      layout: { "line-join": "round", "line-cap": "round" },
-      paint: {
-        "line-color": "#60a5fa",
-        "line-width": 5.5,
-        "line-opacity": 1.0
-      }
-    });
-  }
-}
-
 function updateRouteGeoJSON() {
-  if (!map || !styleReady || !routeCoordsLngLat.length) return;
-  ensureRouteLayers();
+  if (!map || !routeCoordsLngLat.length) return;
+  const srcAhead = map.getSource("route-ahead");
+  const srcTraveled = map.getSource("route-traveled");
+  if (!srcAhead || !srcTraveled) return;
+
+  const meta = ROUTE_META[curRoute] || ROUTE_META.r1;
+  if (map.getLayer("route-ahead-glow")) {
+    map.setPaintProperty("route-ahead-glow", "line-color", meta.color);
+    map.setPaintProperty("route-ahead-casing", "line-color", meta.color);
+    map.setPaintProperty("route-ahead-core", "line-color", meta.core);
+  }
+
+  // Also show the other 2 routes faintly for instant visual comparison
+  const srcAlt = map.getSource("alt-routes");
+  if (srcAlt && NAV_DATA) {
+    const altFeatures = [];
+    ["r1", "r2", "r3"].forEach(k => {
+      if (k !== curRoute && NAV_DATA[k] && NAV_DATA[k][curDir]) {
+        altFeatures.push({
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates: NAV_DATA[k][curDir].coords.map(c => [c[1], c[0]])
+          }
+        });
+      }
+    });
+    srcAlt.setData({ type: "FeatureCollection", features: altFeatures });
+  }
 
   const split = Math.max(0, Math.min(currentSplitIdx, routeCoordsLngLat.length - 1));
   const traveledCoords = routeCoordsLngLat.slice(0, split + 1);
   const aheadCoords = routeCoordsLngLat.slice(split);
 
-  const srcTraveled = map.getSource("route-traveled");
-  if (srcTraveled) {
-    srcTraveled.setData({
-      type: "Feature",
-      geometry: {
-        type: "LineString",
-        coordinates: traveledCoords.length >= 2 ? traveledCoords : [routeCoordsLngLat[0], routeCoordsLngLat[0]]
-      }
-    });
-  }
+  srcTraveled.setData({
+    type: "Feature",
+    geometry: {
+      type: "LineString",
+      coordinates: traveledCoords.length >= 2 ? traveledCoords : [routeCoordsLngLat[0], routeCoordsLngLat[0]]
+    }
+  });
 
-  const srcAhead = map.getSource("route-ahead");
-  if (srcAhead) {
-    srcAhead.setData({
-      type: "Feature",
-      geometry: {
-        type: "LineString",
-        coordinates: aheadCoords.length >= 2 ? aheadCoords : routeCoordsLngLat
-      }
-    });
-  }
+  srcAhead.setData({
+    type: "Feature",
+    geometry: {
+      type: "LineString",
+      coordinates: aheadCoords.length >= 2 ? aheadCoords : routeCoordsLngLat
+    }
+  });
 }
 
 function setDirection(dir) {
   curDir = dir;
   document.getElementById("dir-heen").classList.toggle("active", dir === "heen");
   document.getElementById("dir-terug").classList.toggle("active", dir === "terug");
-  renderSelectedRoute(!targetLngLat);
+  renderSelectedRoute(!followUser);
 }
 
 function setRoute(rKey) {
@@ -946,13 +1024,22 @@ function setRoute(rKey) {
   ["r1", "r2", "r3"].forEach(k => {
     document.getElementById("rt-" + k).classList.toggle("active", k === rKey);
   });
-  renderSelectedRoute(!targetLngLat);
+  renderSelectedRoute(!followUser);
 }
 
-function renderSelectedRoute(fitBoundsIfNoGps) {
-  if (!NAV_DATA) return;
-  const rData = NAV_DATA[curRoute][curDir];
-  routeCoordsLatLon = rData.coords;
+function renderSelectedRoute(shouldFitBounds) {
+  if (!NAV_DATA || !NAV_DATA[curRoute]) return;
+  const routeObj = NAV_DATA[curRoute];
+  const rData = routeObj[curDir];
+  if (!rData) return;
+
+  // Update Google Maps direct-start button URL
+  const gmapsBtn = document.getElementById("btn-gmaps");
+  if (gmapsBtn) {
+    gmapsBtn.href = curDir === "heen" ? routeObj.gmaps_heen : routeObj.gmaps_terug;
+  }
+
+  routeCoordsLatLon = rData.coords || [];
   routeCoordsLngLat = routeCoordsLatLon.map(c => [c[1], c[0]]);
   currentSplitIdx = 0;
 
@@ -963,9 +1050,8 @@ function renderSelectedRoute(fitBoundsIfNoGps) {
       routeCoordsLatLon[i][0], routeCoordsLatLon[i][1]
     );
   }
-  totalRouteMeters = cumDist[cumDist.length - 1] || rData.distance_m;
+  totalRouteMeters = cumDist[cumDist.length - 1] || ((rData.distance_km || 39.2) * 1000);
 
-  // Set default initial heading along start of route
   if (routeCoordsLatLon.length > 5 && compassHeading === null && gpsHeading === null) {
     targetHeading = calcBearing(
       routeCoordsLatLon[0][0], routeCoordsLatLon[0][1],
@@ -974,39 +1060,64 @@ function renderSelectedRoute(fitBoundsIfNoGps) {
     displayHeading = targetHeading;
   }
 
+  // Always update HUD distances, times, and top card immediately on route/direction switch
+  updateHudForSelectedRoute(routeObj, rData);
   updateRouteGeoJSON();
 
-  // Start & End Endpoint Pins
-  if (startMarker) startMarker.remove();
-  if (endMarker) endMarker.remove();
+  if (map && routeCoordsLngLat.length > 1) {
+    if (startMarker) startMarker.remove();
+    if (endMarker) endMarker.remove();
 
-  const startEl = document.createElement("div");
-  startEl.className = "endpoint-pin";
-  startEl.style.background = "#10b981";
-  startMarker = new maplibregl.Marker({ element: startEl })
-    .setLngLat(routeCoordsLngLat[0])
-    .addTo(map);
+    const startEl = document.createElement("div");
+    startEl.className = "endpoint-pin";
+    startEl.style.background = "#10b981";
+    startMarker = new maplibregl.Marker({ element: startEl })
+      .setLngLat(routeCoordsLngLat[0])
+      .addTo(map);
 
-  const endEl = document.createElement("div");
-  endEl.className = "endpoint-pin";
-  endEl.style.background = "#ef4444";
-  endMarker = new maplibregl.Marker({ element: endEl })
-    .setLngLat(routeCoordsLngLat[routeCoordsLngLat.length - 1])
-    .addTo(map);
+    const endEl = document.createElement("div");
+    endEl.className = "endpoint-pin";
+    endEl.style.background = "#ef4444";
+    endMarker = new maplibregl.Marker({ element: endEl })
+      .setLngLat(routeCoordsLngLat[routeCoordsLngLat.length - 1])
+      .addTo(map);
 
-  if (fitBoundsIfNoGps && !targetLngLat) {
-    fitFullRoute(false);
+    if (shouldFitBounds) {
+      fitFullRoute(false);
+    }
   }
 
-  updateHudStatic(rData);
-  if (targetLngLat) {
+  // If actively navigating with GPS lock, recalculate snapped progress on the newly selected route
+  if (targetLngLat && followUser) {
     processLocationUpdate(targetLngLat[1], targetLngLat[0], lastSpeedMps, gpsHeading);
   }
 }
 
-function fitFullRoute(disableFollow = true) {
-  if (!routeCoordsLngLat.length) return;
-  if (disableFollow) {
+function updateHudForSelectedRoute(routeObj, rData) {
+  const meta = ROUTE_META[curRoute] || ROUTE_META.r1;
+  const distKm = rData.distance_km || (totalRouteMeters / 1000);
+  const remKmStr = distKm.toFixed(1).replace(".", ",");
+  const mins = meta.mins || Math.round((distKm / 52.0) * 60);
+
+  document.getElementById("rem-dist").textContent = remKmStr + " km";
+  document.getElementById("rem-time").textContent = mins + " min";
+  const eta = new Date(Date.now() + mins * 60000);
+  document.getElementById("eta-time").textContent =
+    String(eta.getHours()).padStart(2, "0") + ":" + String(eta.getMinutes()).padStart(2, "0");
+  document.getElementById("progress-fill").style.width = "0%";
+
+  const dirLabel = curDir === "heen" ? "HEEN · WESTWIJK → UTRECHT" : "TERUG · UTRECHT → WESTWIJK";
+  document.getElementById("turn-dist").textContent = remKmStr + " km";
+  document.getElementById("turn-tag").textContent = `${meta.short} · ${curDir.toUpperCase()}`;
+  document.getElementById("turn-street").textContent = routeObj.title;
+  document.getElementById("turn-meta").textContent = `${dirLabel} · ${meta.lights} · ~${mins} min`;
+  document.getElementById("turn-icon").innerHTML = getTurnSvg("straight", "depart", 30);
+  document.getElementById("then-banner").classList.remove("visible");
+}
+
+function fitFullRoute(userClickedOverview = true) {
+  if (!map || !routeCoordsLngLat.length) return;
+  if (userClickedOverview) {
     followUser = false;
     updateControlStates();
   }
@@ -1014,12 +1125,12 @@ function fitFullRoute(disableFollow = true) {
   for (const pt of routeCoordsLngLat) bounds.extend(pt);
   isEasing = true;
   map.fitBounds(bounds, {
-    padding: { top: 195, bottom: 120, left: 36, right: 72 },
+    padding: { top: 205, bottom: 125, left: 38, right: 74 },
     pitch: 0,
     bearing: 0,
-    duration: 700
+    duration: 650
   });
-  setTimeout(() => { isEasing = false; }, 720);
+  setTimeout(() => { isEasing = false; }, 680);
 }
 
 // Engage Google Maps-style 3D Follow + Hardware Compass
@@ -1029,19 +1140,34 @@ function engageNavigation() {
   followUser = true;
   updateControlStates();
 
-  if (targetLngLat) {
+  if (targetLngLat && map) {
+    processLocationUpdate(targetLngLat[1], targetLngLat[0], lastSpeedMps, gpsHeading);
     isEasing = true;
     map.easeTo({
       center: targetLngLat,
-      zoom: 16.8,
+      zoom: courseUp ? 16.8 : 15.5,
       pitch: courseUp ? 55 : 0,
       bearing: courseUp ? displayHeading : 0,
-      padding: { top: 210, bottom: 140, left: 0, right: 0 },
+      padding: courseUp ? { top: 210, bottom: 140, left: 0, right: 0 } : { top: 140, bottom: 110, left: 0, right: 0 },
       duration: 650
     });
     setTimeout(() => { isEasing = false; }, 680);
   } else if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(onGpsPos, onGpsErr, {
+    navigator.geolocation.getCurrentPosition(pos => {
+      onGpsPos(pos);
+      if (targetLngLat && map) {
+        isEasing = true;
+        map.easeTo({
+          center: targetLngLat,
+          zoom: courseUp ? 16.8 : 15.5,
+          pitch: courseUp ? 55 : 0,
+          bearing: courseUp ? displayHeading : 0,
+          padding: courseUp ? { top: 210, bottom: 140, left: 0, right: 0 } : { top: 140, bottom: 110, left: 0, right: 0 },
+          duration: 650
+        });
+        setTimeout(() => { isEasing = false; }, 680);
+      }
+    }, onGpsErr, {
       enableHighAccuracy: true,
       maximumAge: 0,
       timeout: 8000
@@ -1055,11 +1181,12 @@ function toggleCourseUp() {
   followUser = true;
   updateControlStates();
 
-  if (targetLngLat) {
+  const centerPt = targetLngLat || (routeCoordsLngLat.length ? routeCoordsLngLat[0] : [4.82693, 52.28640]);
+  if (map) {
     isEasing = true;
     map.easeTo({
-      center: targetLngLat,
-      zoom: courseUp ? 16.8 : 15.5,
+      center: centerPt,
+      zoom: courseUp ? 16.8 : 15.2,
       pitch: courseUp ? 55 : 0,
       bearing: courseUp ? displayHeading : 0,
       padding: courseUp ? { top: 210, bottom: 140, left: 0, right: 0 } : { top: 140, bottom: 110, left: 0, right: 0 },
@@ -1069,16 +1196,20 @@ function toggleCourseUp() {
   }
 }
 
+// Instant Day / Night toggle by switching raster layer visibility -> Route layers stay 100% intact!
 function toggleMapTheme() {
   lightTheme = !lightTheme;
-  styleReady = false;
-  map.setStyle(lightTheme ? STYLE_LIGHT : STYLE_DARK);
+  if (map && map.getLayer("basemap-light") && map.getLayer("basemap-dark")) {
+    map.setLayoutProperty("basemap-light", "visibility", lightTheme ? "visible" : "none");
+    map.setLayoutProperty("basemap-dark", "visibility", lightTheme ? "none" : "visible");
+  }
   document.getElementById("btn-theme").classList.toggle("active", lightTheme);
-  document.getElementById("lbl-theme").textContent = lightTheme ? "DAG" : "NACHT";
+  document.getElementById("lbl-theme").textContent = lightTheme ? "NACHTKAART" : "DAGKAART";
 }
 
 function updateControlStates() {
   document.getElementById("btn-follow").classList.toggle("active", followUser);
+  document.getElementById("btn-overview").classList.toggle("active", !followUser);
   document.getElementById("btn-compass").classList.toggle("active", courseUp);
   document.getElementById("lbl-compass").textContent = courseUp ? "3D KOERS" : "2D NOORD";
 
@@ -1086,7 +1217,7 @@ function updateControlStates() {
   const label = document.getElementById("recenter-label");
   if (!followUser) {
     pill.classList.add("visible");
-    label.textContent = "Centreren";
+    label.textContent = "Start 3D Navigatie / Centreer";
   } else if (!compassGranted && typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function") {
     pill.classList.add("visible");
     label.textContent = "Activeer Kompas (3D)";
@@ -1095,7 +1226,6 @@ function updateControlStates() {
   }
 }
 
-// iOS Hardware Magnetometer Compass Integration
 function requestCompassPermission() {
   if (compassGranted) return;
   if (typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function") {
@@ -1126,7 +1256,6 @@ function initCompassListener() {
 function onDeviceOrientation(e) {
   let hdg = null;
   if (typeof e.webkitCompassHeading === "number" && !isNaN(e.webkitCompassHeading)) {
-    // iOS true/magnetic north heading in degrees (0 = North, 90 = East)
     hdg = e.webkitCompassHeading;
   } else if (e.absolute === true && typeof e.alpha === "number") {
     hdg = (360 - e.alpha) % 360;
@@ -1136,9 +1265,6 @@ function onDeviceOrientation(e) {
   compassHeading = (hdg + 360) % 360;
   compassGranted = true;
 
-  // Sensor Fusion:
-  // - Below 8 km/h (2.2 m/s) or when GPS course is unavailable, follow the phone's compass directly
-  // - Above 8 km/h, blend 75% GPS movement course + 25% compass for rock-steady road tracking
   if (lastSpeedMps < 2.2 || gpsHeading === null) {
     targetHeading = compassHeading;
   } else {
@@ -1146,14 +1272,13 @@ function onDeviceOrientation(e) {
   }
 }
 
-// 60 FPS Smooth Camera & Navigation Puck Loop
 function cameraLoop() {
   if (targetLngLat) {
     if (!displayLngLat) {
       displayLngLat = [targetLngLat[0], targetLngLat[1]];
     } else {
-      displayLngLat[0] += (targetLngLat[0] - displayLngLat[0]) * 0.16;
-      displayLngLat[1] += (targetLngLat[1] - displayLngLat[1]) * 0.16;
+      displayLngLat[0] += (targetLngLat[0] - displayLngLat[0]) * 0.18;
+      displayLngLat[1] += (targetLngLat[1] - displayLngLat[1]) * 0.18;
     }
 
     displayHeading = lerpAngle(displayHeading, targetHeading, 0.18);
@@ -1163,7 +1288,7 @@ function cameraLoop() {
       userMarker.setRotation(displayHeading);
     }
 
-    if (followUser && !isDragging && !isEasing && firstFixReceived) {
+    if (followUser && !isDragging && !isEasing && map) {
       map.jumpTo({
         center: displayLngLat,
         bearing: courseUp ? displayHeading : 0,
@@ -1174,32 +1299,20 @@ function cameraLoop() {
   requestAnimationFrame(cameraLoop);
 }
 
-function updateHudStatic(rData) {
-  const remKm = (rData.distance_m / 1000).toFixed(1).replace(".", ",");
-  const mins = Math.round((rData.distance_m / 1000) / 51.5 * 60);
-  document.getElementById("rem-dist").textContent = remKm + " km";
-  document.getElementById("rem-time").textContent = mins + " min";
-  const eta = new Date(Date.now() + mins * 60000);
-  document.getElementById("eta-time").textContent =
-    String(eta.getHours()).padStart(2, "0") + ":" + String(eta.getMinutes()).padStart(2, "0");
-
-  if (rData.steps.length > 0) {
-    setManeuverUI(rData.steps[0], rData.steps[1] || null, 0, 0);
-  }
-}
-
-function getTurnSvg(mod, type, size = 32) {
+function getTurnSvg(mod, type, size = 30) {
+  const m = mod || "";
+  const t = type || "";
   let path = `<path d="M12 19V5M5 12l7-7 7 7"/>`;
-  if (type === "arrive") {
+  if (t === "arrive") {
     path = `<circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z"/>`;
-  } else if (type === "roundabout" || type === "rotary") {
+  } else if (t === "roundabout" || t === "rotary") {
     path = `<circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 16v6M16 12h6"/>`;
-  } else if (mod.includes("left")) {
-    path = mod.includes("slight")
+  } else if (m.includes("left")) {
+    path = m.includes("slight")
       ? `<path d="M17 19V9l-7-5"/><path d="M10 9V4h5"/>`
       : `<path d="M18 19v-7a3 3 0 0 0-3-3H5"/><path d="M9 5 5 9l4 4"/>`;
-  } else if (mod.includes("right")) {
-    path = mod.includes("slight")
+  } else if (m.includes("right")) {
+    path = m.includes("slight")
       ? `<path d="M7 19V9l7-5"/><path d="M14 9V4H9"/>`
       : `<path d="M6 19v-7a3 3 0 0 1 3-3h10"/><path d="m15 5 4 4-4 4"/>`;
   }
@@ -1207,6 +1320,7 @@ function getTurnSvg(mod, type, size = 32) {
 }
 
 function getActionTag(step) {
+  if (!step) return "VOLG ROUTE";
   const mod = step.mod || "";
   const type = step.type || "";
   if (type === "arrive") return "BESTEMMING";
@@ -1220,17 +1334,36 @@ function getActionTag(step) {
   return "RECHTDOOR";
 }
 
+function formatStepDutch(step) {
+  if (!step) return "Volg het fietspad";
+  const mod = step.mod || "";
+  const type = step.type || "";
+  const name = step.name || "Fietspad / Weg";
+  if (type === "arrive") return "Bestemming bereikt";
+  if (type === "roundabout" || type === "rotary") return `Rotonde op naar ${name}`;
+  if (mod === "sharp left") return `Scherp linksaf naar ${name}`;
+  if (mod === "left") return `Linksaf naar ${name}`;
+  if (mod === "slight left") return `Links aanhouden op ${name}`;
+  if (mod === "sharp right") return `Scherp rechtsaf naar ${name}`;
+  if (mod === "right") return `Rechtsaf naar ${name}`;
+  if (mod === "slight right") return `Rechts aanhouden op ${name}`;
+  return `Weg volgen op ${name}`;
+}
+
 function formatDist(m) {
   if (m >= 1000) return (m / 1000).toFixed(1).replace(".", ",") + " km";
   if (m >= 100) return Math.round(m / 10) * 10 + " m";
   return Math.max(5, Math.round(m / 5) * 5) + " m";
 }
 
-function setManeuverUI(step, nextStep, distToStep, gapToNext) {
+function setManeuverUI(step, nextStep, distToStep, gapToNext, routeTitle) {
+  if (!step) return;
   document.getElementById("turn-dist").textContent = formatDist(distToStep);
   document.getElementById("turn-tag").textContent = getActionTag(step);
-  document.getElementById("turn-street").textContent = step.text + (step.name ? " — " + step.name : "");
-  document.getElementById("turn-icon").innerHTML = getTurnSvg(step.mod || "", step.type || "", 32);
+  document.getElementById("turn-street").textContent = formatStepDutch(step);
+  const meta = ROUTE_META[curRoute] || ROUTE_META.r1;
+  document.getElementById("turn-meta").textContent = `${routeTitle} · ${meta.lights}`;
+  document.getElementById("turn-icon").innerHTML = getTurnSvg(step.mod || "", step.type || "", 30);
 
   const card = document.getElementById("maneuver-card");
   card.classList.toggle("imminent", distToStep <= 140);
@@ -1239,8 +1372,7 @@ function setManeuverUI(step, nextStep, distToStep, gapToNext) {
   if (nextStep && distToStep <= 500 && gapToNext <= 450) {
     thenBanner.classList.add("visible");
     document.getElementById("then-icon").innerHTML = getTurnSvg(nextStep.mod || "", nextStep.type || "", 15);
-    document.getElementById("then-text").textContent =
-      nextStep.text.toLowerCase() + (nextStep.name ? " (" + nextStep.name + ")" : "");
+    document.getElementById("then-text").textContent = formatStepDutch(nextStep);
   } else {
     thenBanner.classList.remove("visible");
   }
@@ -1264,23 +1396,14 @@ function onGpsPos(pos) {
   const spdMps = pos.coords.speed || 0;
   const hdg = pos.coords.heading;
 
+  const isFirst = (targetLngLat === null);
   lastSpeedMps = spdMps;
   if (hdg !== null && !isNaN(hdg) && spdMps >= 1.8) {
     gpsHeading = hdg;
   }
 
-  processLocationUpdate(lat, lon, spdMps, gpsHeading);
-}
-
-function processLocationUpdate(lat, lon, spdMps, hdg) {
-  const badge = document.getElementById("gps-badge");
-  badge.classList.add("locked");
-  document.getElementById("gps-text").textContent = "GPS ACTIEF";
-
-  const kmh = Math.max(0, Math.round(spdMps * 3.6));
-  document.getElementById("speed-val").textContent = kmh;
-
   targetLngLat = [lon, lat];
+  if (!displayLngLat) displayLngLat = [lon, lat];
 
   if (!userMarker && map) {
     const el = createPuckElement();
@@ -1294,21 +1417,31 @@ function processLocationUpdate(lat, lon, spdMps, hdg) {
       .addTo(map);
   }
 
-  // Auto-select Heen or Terug on first GPS fix if within 2 km of start
-  if (!firstFixReceived && NAV_DATA && !params.get("dir")) {
-    const dHome = haversine(lat, lon, 52.28640, 4.82693);
-    const dWork = haversine(lat, lon, 52.06365, 5.10798);
-    if (dWork < 2000 && curDir !== "terug") {
-      setDirection("terug");
-    } else if (dHome < 2000 && curDir !== "heen") {
-      setDirection("heen");
-    }
+  const badge = document.getElementById("gps-badge");
+  badge.classList.add("locked");
+  document.getElementById("gps-text").textContent = "GPS ACTIEF";
+
+  const kmh = Math.max(0, Math.round(spdMps * 3.6));
+  document.getElementById("speed-val").textContent = kmh;
+
+  // Auto-engage 3D follow when user starts riding (> 6 km/h)
+  if (!followUser && kmh >= 6) {
+    followUser = true;
+    updateControlStates();
   }
 
-  if (!NAV_DATA || !routeCoordsLatLon.length) return;
-  const rData = NAV_DATA[curRoute][curDir];
+  // Only update live progress along route when followUser is active (so switching routes in Overview keeps static route totals visible!)
+  if (followUser || isFirst) {
+    processLocationUpdate(lat, lon, spdMps, gpsHeading);
+  }
+}
 
-  // Snap to closest vertex on route
+function processLocationUpdate(lat, lon, spdMps, hdg) {
+  if (!NAV_DATA || !routeCoordsLatLon.length) return;
+  const routeObj = NAV_DATA[curRoute];
+  const rData = routeObj[curDir];
+  const kmh = Math.max(0, Math.round(spdMps * 3.6));
+
   let bestIdx = 0;
   let bestDist = Infinity;
   for (let i = 0; i < routeCoordsLatLon.length; i++) {
@@ -1319,53 +1452,38 @@ function processLocationUpdate(lat, lon, spdMps, hdg) {
     }
   }
 
-  currentSplitIdx = bestIdx;
+  // Only split traveled vs ahead polyline if user is actually near the route (< 1.5 km from current segment)
+  // (e.g., if previewing "Terug" while sitting at home in Amstelveen, don't mark the whole route as already traveled!)
+  if (bestDist < 1500 && bestIdx < routeCoordsLatLon.length - 10) {
+    currentSplitIdx = bestIdx;
+  } else {
+    currentSplitIdx = 0;
+  }
   updateRouteGeoJSON();
 
-  // Heading fusion fallback if neither compass nor GPS course is active yet
   if (hdg !== null && !isNaN(hdg) && spdMps >= 2.2) {
     targetHeading = compassHeading !== null ? lerpAngle(compassHeading, hdg, 0.75) : hdg;
   } else if (compassHeading !== null) {
     targetHeading = compassHeading;
-  } else if (bestIdx < routeCoordsLatLon.length - 2) {
-    const nextIdx = Math.min(routeCoordsLatLon.length - 1, bestIdx + 3);
+  } else if (currentSplitIdx < routeCoordsLatLon.length - 2) {
+    const nextIdx = Math.min(routeCoordsLatLon.length - 1, currentSplitIdx + 3);
     targetHeading = calcBearing(
-      routeCoordsLatLon[bestIdx][0], routeCoordsLatLon[bestIdx][1],
+      routeCoordsLatLon[currentSplitIdx][0], routeCoordsLatLon[currentSplitIdx][1],
       routeCoordsLatLon[nextIdx][0], routeCoordsLatLon[nextIdx][1]
     );
   }
 
-  // On very first GPS fix, smoothly fly into 3D Course-Up view centered on the user
-  if (!firstFixReceived && map) {
-    firstFixReceived = true;
-    displayLngLat = [lon, lat];
-    displayHeading = targetHeading;
-    if (followUser) {
-      isEasing = true;
-      map.easeTo({
-        center: [lon, lat],
-        zoom: 16.8,
-        pitch: courseUp ? 55 : 0,
-        bearing: courseUp ? displayHeading : 0,
-        padding: { top: 210, bottom: 140, left: 0, right: 0 },
-        duration: 850
-      });
-      setTimeout(() => { isEasing = false; }, 880);
-    }
-    updateControlStates();
-  }
+  if (!followUser) return;
 
-  // Off-route warning if > 95m from locked path
-  document.getElementById("offroute-banner").style.display = bestDist > 95 ? "block" : "none";
+  document.getElementById("offroute-banner").style.display = bestDist > 110 ? "block" : "none";
 
-  // Remaining distance, ETA & progress bar
-  const traveledM = cumDist[bestIdx] || 0;
+  const traveledM = cumDist[currentSplitIdx] || 0;
   const remMeters = Math.max(0, totalRouteMeters - traveledM);
   const pct = Math.min(100, Math.max(0, (traveledM / Math.max(1, totalRouteMeters)) * 100));
   document.getElementById("progress-fill").style.width = pct.toFixed(1) + "%";
 
   const remKm = (remMeters / 1000).toFixed(1).replace(".", ",");
-  const effSpeedKmh = kmh > 18 ? Math.min(56, Math.max(25, kmh * 0.92)) : 51.5;
+  const effSpeedKmh = kmh > 18 ? Math.min(56, Math.max(25, kmh * 0.92)) : 52.0;
   const remMins = Math.max(1, Math.round((remMeters / 1000) / effSpeedKmh * 60));
 
   document.getElementById("rem-dist").textContent = remKm + " km";
@@ -1374,47 +1492,40 @@ function processLocationUpdate(lat, lon, spdMps, hdg) {
   document.getElementById("eta-time").textContent =
     String(eta.getHours()).padStart(2, "0") + ":" + String(eta.getMinutes()).padStart(2, "0");
 
-  // Find next upcoming turn maneuver
-  let nextStep = rData.steps[rData.steps.length - 1];
+  // Find next upcoming turn maneuver using precomputed st.cum
+  const steps = rData.steps || [];
+  let nextStep = steps[steps.length - 1] || null;
   let secondStep = null;
   let distToNext = remMeters;
   let gapToSecond = 9999;
 
-  for (let s = 0; s < rData.steps.length; s++) {
-    const st = rData.steps[s];
+  for (let s = 0; s < steps.length; s++) {
+    const st = steps[s];
     if (st.type === "depart") continue;
-    let stIdx = 0;
-    let stBest = Infinity;
-    for (let i = bestIdx; i < routeCoordsLatLon.length; i++) {
-      const d = haversine(st.lat, st.lon, routeCoordsLatLon[i][0], routeCoordsLatLon[i][1]);
-      if (d < stBest) {
-        stBest = d;
-        stIdx = i;
-      }
-    }
-    const dAlong = (cumDist[stIdx] || 0) - traveledM;
-    if (dAlong > 12) {
+    const dAlong = (st.cum || 0) - traveledM;
+    if (dAlong > 15) {
       nextStep = st;
       distToNext = dAlong;
-      if (s + 1 < rData.steps.length) {
-        secondStep = rData.steps[s + 1];
+      if (s + 1 < steps.length) {
+        secondStep = steps[s + 1];
         gapToSecond = st.dist || 9999;
       }
       break;
     }
   }
 
-  setManeuverUI(nextStep, secondStep, distToNext, gapToSecond);
-
-  if (map) {
-    if (!turnMarker) {
-      const dotEl = document.createElement("div");
-      dotEl.className = "turn-target-dot";
-      turnMarker = new maplibregl.Marker({ element: dotEl })
-        .setLngLat([nextStep.lon, nextStep.lat])
-        .addTo(map);
-    } else {
-      turnMarker.setLngLat([nextStep.lon, nextStep.lat]);
+  if (nextStep) {
+    setManeuverUI(nextStep, secondStep, distToNext, gapToSecond, routeObj.title);
+    if (map) {
+      if (!turnMarker) {
+        const dotEl = document.createElement("div");
+        dotEl.className = "turn-target-dot";
+        turnMarker = new maplibregl.Marker({ element: dotEl })
+          .setLngLat([nextStep.lon, nextStep.lat])
+          .addTo(map);
+      } else {
+        turnMarker.setLngLat([nextStep.lon, nextStep.lat]);
+      }
     }
   }
 }
