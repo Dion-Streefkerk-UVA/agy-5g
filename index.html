@@ -6,25 +6,27 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Antigravity">
-<meta name="theme-color" content="#0b0d13">
+<meta name="theme-color" content="#0e0f12">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="apple-touch-icon-precomposed" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <title>Antigravity</title>
 <style>
 :root {
-  --bg: #0b0d13;
-  --panel: rgba(20, 24, 36, 0.88);
-  --card: rgba(28, 34, 50, 0.72);
-  --card-border: rgba(255, 255, 255, 0.08);
-  --accent: #4da3ff;
-  --accent-grad: linear-gradient(135deg, #4285F4, #34A853, #FBBC05, #EA4335);
-  --user-bubble: linear-gradient(135deg, #2563eb, #1d4ed8);
-  --text: #f3f6fc;
-  --muted: #8e9bb0;
+  --bg: #0e0f12;
+  --sidebar: #121317;
+  --surface: #17191f;
+  --surface-elevated: #1c1f26;
+  --code-bg: #111318;
+  --user-bubble: #1e2028;
+  --border: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.11);
+  --text: #e6e8ee;
+  --text-secondary: #9ba1b0;
+  --text-muted: #646a78;
+  --link: #6cb6ff;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body {
@@ -32,438 +34,417 @@ html, body {
   width: 100%; height: 100%;
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Text", "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.58;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  -webkit-font-smoothing: antialiased;
 }
 header {
-  padding-top: max(env(safe-area-inset-top), 14px);
+  padding-top: max(env(safe-area-inset-top), 12px);
   padding-bottom: 10px;
-  padding-left: 16px;
-  padding-right: 16px;
-  background: var(--panel);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--card-border);
+  padding-left: 12px;
+  padding-right: 12px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
   z-index: 20;
 }
-.brand {
+.hdr-left {
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-.brand img {
-  width: 28px;
-  height: 28px;
-  border-radius: 7px;
-}
-.brand-title {
-  font-weight: 700;
-  font-size: 16px;
-  letter-spacing: -0.3px;
-}
-.brand-sub {
-  font-size: 11px;
-  color: #34d399;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-.dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: #34d399;
-  box-shadow: 0 0 8px #34d399;
-}
-.hdr-actions {
-  display: flex;
   gap: 8px;
+  min-width: 0;
 }
-.btn-icon {
-  background: rgba(255,255,255,0.07);
-  border: 1px solid var(--card-border);
-  color: var(--text);
-  border-radius: 10px;
-  padding: 7px 11px;
-  font-size: 13px;
-  font-weight: 600;
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
 }
-.btn-route {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(239, 68, 68, 0.22));
-  border: 1px solid rgba(245, 158, 11, 0.45);
-  color: #fbbf24;
+.icon-btn:active {
+  background: var(--surface);
+  color: var(--text);
+}
+.session-title {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 #drawer {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.65);
-  backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.55);
   z-index: 50;
   display: none;
 }
 #drawer.open { display: block; }
 .drawer-panel {
-  width: 82%;
-  max-width: 330px;
+  width: 80%;
+  max-width: 290px;
   height: 100%;
-  background: #121622;
-  border-right: 1px solid var(--card-border);
-  padding: max(env(safe-area-inset-top), 18px) 14px 20px 14px;
+  background: var(--sidebar);
+  border-right: 1px solid var(--border);
+  padding: max(env(safe-area-inset-top), 14px) 10px max(env(safe-area-inset-bottom), 14px) 10px;
   display: flex;
   flex-direction: column;
 }
-.drawer-hdr {
+.new-conv-btn {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 8px;
+  cursor: pointer;
   margin-bottom: 12px;
+}
+.section-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  padding: 4px 8px 6px 8px;
 }
 .conv-list {
   flex: 1;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 2px;
 }
 .conv-item {
-  padding: 11px 12px;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid transparent;
+  padding: 8px 10px;
+  border-radius: 7px;
   cursor: pointer;
 }
 .conv-item.active {
-  background: rgba(77, 163, 255, 0.14);
-  border-color: rgba(77, 163, 255, 0.4);
+  background: var(--surface-elevated);
 }
 .conv-title {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 3px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.conv-item.active .conv-title {
+  font-weight: 500;
+}
 .conv-meta {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--text-muted);
   display: flex;
   justify-content: space-between;
+  margin-top: 2px;
 }
 #chat {
   flex: 1;
   overflow-y: auto;
-  padding: 14px 14px 20px 14px;
+  padding: 18px 16px 24px 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
   -webkit-overflow-scrolling: touch;
 }
-.msg {
-  max-width: 88%;
-  padding: 11px 14px;
-  border-radius: 16px;
-  font-size: 14.5px;
-  line-height: 1.45;
-  word-wrap: break-word;
-}
-.msg.user {
+.turn-user {
   align-self: flex-end;
+  max-width: 85%;
   background: var(--user-bubble);
-  color: #fff;
-  border-bottom-right-radius: 4px;
-}
-.msg.agent {
-  align-self: flex-start;
-  background: var(--card);
-  border: 1px solid var(--card-border);
-  border-bottom-left-radius: 4px;
-}
-.tools-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-bottom: 6px;
-}
-.tool-pill {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 99px;
-  background: rgba(77, 163, 255, 0.15);
-  color: #7cc0ff;
-  border: 1px solid rgba(77, 163, 255, 0.3);
-}
-.think-box {
-  font-size: 12px;
-  color: var(--muted);
-  border-left: 2px solid rgba(255,255,255,0.18);
-  padding-left: 8px;
-  margin-bottom: 6px;
-  max-height: 60px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-footer {
-  padding: 10px 12px calc(max(env(safe-area-inset-bottom), 10px)) 12px;
-  background: var(--panel);
-  backdrop-filter: blur(20px);
-  border-top: 1px solid var(--card-border);
-  display: flex;
-  gap: 8px;
-  align-items: flex-end;
-}
-textarea {
-  flex: 1;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid var(--card-border);
-  border-radius: 18px;
+  border: 1px solid var(--border);
   color: var(--text);
   padding: 10px 14px;
-  font-size: 15px;
-  font-family: inherit;
-  resize: none;
-  max-height: 110px;
-  outline: none;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  word-wrap: break-word;
+  white-space: pre-wrap;
 }
-textarea:focus {
-  border-color: var(--accent);
-}
-.send-btn {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: #fff;
-  border: none;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  font-size: 17px;
-  font-weight: bold;
-  cursor: pointer;
+.turn-agent {
+  align-self: stretch;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.toast {
-  position: fixed;
-  top: 76px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(16, 185, 129, 0.95);
-  color: #fff;
-  padding: 8px 16px;
-  border-radius: 99px;
-  font-size: 13px;
-  font-weight: 600;
-  z-index: 100;
-  display: none;
-}
-.stats-hud {
-  display: flex;
+  flex-direction: column;
   gap: 8px;
-  padding: 8px 14px;
-  background: rgba(15, 19, 30, 0.85);
-  border-bottom: 1px solid var(--card-border);
-  overflow-x: auto;
-  align-items: center;
+  min-width: 0;
 }
-.stat-chip {
+.thought-block {
+  margin-bottom: 2px;
+}
+.thought-summary {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.thought-chev {
+  transition: transform 0.15s ease;
+  display: inline-block;
+}
+.thought-block.open .thought-chev {
+  transform: rotate(90deg);
+}
+.thought-body {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  border-left: 2px solid var(--border-strong);
+  padding-left: 10px;
+  margin-top: 6px;
+  display: none;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+.thought-block.open .thought-body {
+  display: block;
+}
+.tools-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 2px 0;
+}
+.tool-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 99px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
-  font-size: 11.5px;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+}
+.markdown-body {
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.62;
+  overflow-wrap: break-word;
+}
+.markdown-body > *:first-child { margin-top: 0; }
+.markdown-body > *:last-child { margin-bottom: 0; }
+.markdown-body p { margin: 0 0 10px 0; }
+.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 {
+  color: #f2f4f8;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 18px 0 8px 0;
+  letter-spacing: -0.2px;
+}
+.markdown-body h1 { font-size: 18px; }
+.markdown-body h2 { font-size: 16px; padding-bottom: 5px; border-bottom: 1px solid var(--border); }
+.markdown-body h3 { font-size: 14.5px; }
+.markdown-body h4 { font-size: 13.5px; }
+.markdown-body ul, .markdown-body ol {
+  margin: 0 0 10px 0;
+  padding-left: 20px;
+}
+.markdown-body li { margin-bottom: 4px; }
+.markdown-body li > p { margin-bottom: 4px; }
+.markdown-body hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 14px 0;
+}
+.markdown-body blockquote {
+  margin: 8px 0 10px 0;
+  padding: 6px 12px;
+  border-left: 3px solid var(--border-strong);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-secondary);
+  border-radius: 0 6px 6px 0;
+}
+.markdown-body code {
+  font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  background: var(--surface-elevated);
+  color: #d8dee9;
+  padding: 1.5px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+.markdown-body pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 11px 13px;
+  overflow-x: auto;
+  margin: 8px 0 12px 0;
+}
+.markdown-body pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #e6e8ee;
+}
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin: 8px 0 12px 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.markdown-body th, .markdown-body td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+.markdown-body th {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
   white-space: nowrap;
 }
-.stat-chip strong { color: #fff; }
-.route-modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(6, 8, 14, 0.92);
-  backdrop-filter: blur(14px);
-  z-index: 80;
-  display: none;
-  flex-direction: column;
-  padding: max(env(safe-area-inset-top), 14px) 14px max(env(safe-area-inset-bottom), 14px) 14px;
+.markdown-body tr:last-child td {
+  border-bottom: none;
 }
-.route-modal.open { display: flex; }
-.route-card {
-  background: rgba(24, 30, 46, 0.9);
-  border: 1px solid rgba(255,255,255,0.1);
+.markdown-body a {
+  color: var(--link);
+  text-decoration: none;
+}
+footer {
+  padding: 6px 12px calc(max(env(safe-area-inset-bottom), 10px)) 12px;
+  background: var(--bg);
+}
+.composer {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
   border-radius: 14px;
-  padding: 11px;
-  margin-bottom: 9px;
-}
-.route-btn-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 8px;
-}
-.route-launch-btn {
+  padding: 10px 10px 8px 14px;
   display: flex;
   flex-direction: column;
+  gap: 8px;
+}
+textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  line-height: 1.45;
+  resize: none;
+  max-height: 120px;
+  outline: none;
+  padding: 0;
+}
+textarea::placeholder {
+  color: var(--text-muted);
+}
+.composer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.composer-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.send-btn {
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+  border-radius: 7px;
+  width: 26px;
+  height: 26px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  padding: 9px 8px;
-  border-radius: 11px;
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 12.5px;
-  color: #fff;
-  text-align: center;
-}
-.route-launch-btn span {
-  font-size: 10px;
-  font-weight: 500;
-  opacity: 0.85;
-  margin-top: 2px;
-}
-#map {
-  flex: 1;
-  width: 100%;
-  min-height: 180px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.12);
-  margin-bottom: 9px;
+  cursor: pointer;
+  padding: 0;
 }
 </style>
 </head>
 <body>
-<div class="toast" id="toast">Sent to Antigravity PC</div>
 <header>
-  <div class="brand" onclick="toggleDrawer(true)">
-    <img src="apple-touch-icon.png" alt="AGY">
-    <div>
-      <div class="brand-title" id="hdr-title">Antigravity</div>
-      <div class="brand-sub"><span class="dot"></span><span id="conn-label">PC + 5G Live • Wi-Fi / 5G</span></div>
-    </div>
+  <div class="hdr-left">
+    <button class="icon-btn" onclick="toggleDrawer(true)" aria-label="Sidebar">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+        <rect x="2" y="2.5" width="12" height="11" rx="2"/>
+        <path d="M6 2.5v11"/>
+      </svg>
+    </button>
+    <span class="session-title" id="hdr-title">iPhone 13 & PC Workspace</span>
   </div>
-  <div class="hdr-actions">
-    <button class="btn-icon btn-route" onclick="openRouteModal()">🛵 55km/h Route</button>
-    <button class="btn-icon" onclick="toggleDrawer(true)">☰</button>
-    <button class="btn-icon" onclick="promptNewChat()">＋</button>
-  </div>
+  <button class="icon-btn" onclick="promptNewChat()" aria-label="New conversation">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <path d="M8 3.2v9.6M3.2 8h9.6"/>
+    </svg>
+  </button>
 </header>
-
-<div class="stats-hud">
-  <div class="stat-chip" onclick="openRouteModal()" style="cursor:pointer;border-color:rgba(251,191,36,0.4);background:rgba(251,191,36,0.12)">
-    <span>🛵</span><strong style="color:#fbbf24">55km/h Werk Route (38.4–39.6km)</strong><span>• ~44m Locked</span>
-  </div>
-  <div class="stat-chip"><span>⚡</span><strong>Claude / AGY</strong><span id="stat-model">Pro High • Active</span></div>
-  <div class="stat-chip"><span>☁️</span><strong>Obsidian 5G</strong><span id="stat-steps">8.6 MB Slim</span></div>
-</div>
-
-<div class="route-modal" id="route-modal">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-    <div>
-      <div style="font-weight:800;font-size:16px;color:#fbbf24">🛵 55 km/h Out-of-the-Box Werk Routes</div>
-      <div style="font-size:11.5px;color:var(--muted)">Eyckenstein 127 (Westwijk) ↔ Europalaan 300 (Utrecht) • 0 Pontjes • Hard-Locked</div>
-    </div>
-    <button class="btn-icon" onclick="closeRouteModal()">✕</button>
-  </div>
-
-  <div id="map"></div>
-
-  <div style="overflow-y:auto;max-height:54%">
-    <div class="route-card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <span style="font-weight:700;font-size:13.5px;color:#38bdf8">🏆 Route 1: Bovenkerkerweg – Kockengen – Het Lint – De Meernbrug</span>
-        <span style="font-size:11.5px;font-weight:700;color:#34d399">39.6 km • ~44 min</span>
-      </div>
-      <div style="font-size:11.5px;color:var(--muted);margin-top:3px">
-        <strong>Ultieme Out-of-the-Box Hybride (Slechts 4 stoplichten in 39.6 km!):</strong> 0 stoplichten in Amstelveen/Uithoorn via Bovenkerkerweg → Kockengen → diagonaal over <strong>Het Lint (Máximapark asfaltbaan)</strong> → <strong>De Meernbrug</strong> (slaat 24 Oktoberplein volledig over!) → Rooseveltlaan → Europalaan 300.
-      </div>
-      <div class="route-btn-grid">
-        <a id="btn-r1-heen" class="route-launch-btn" style="background:linear-gradient(135deg,#0284c7,#2563eb)" href="#" target="_blank">
-          🚀 HEEN (39.6km • 4 Lichts)
-          <span>Locked in Google Maps</span>
-        </a>
-        <a id="btn-r1-terug" class="route-launch-btn" style="background:linear-gradient(135deg,#1d4ed8,#4f46e5)" href="#" target="_blank">
-          🏠 TERUG (Werk → Huis)
-          <span>Locked in Google Maps</span>
-        </a>
-      </div>
-    </div>
-
-    <div class="route-card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <span style="font-weight:700;font-size:13.5px;color:#fbbf24">⚡ Route 2: Zijdelweg – Kockengen – Het Lint – Dafne Schippersbrug</span>
-        <span style="font-size:11.5px;font-weight:700;color:#fcd34d">38.4 km • ~43 min</span>
-      </div>
-      <div style="font-size:11.5px;color:var(--muted);margin-top:3px">
-        <strong>Wiskundig allerkortste 0-pontje route die bestaat (38.37 km!):</strong> Rechtstreeks via Zijdelweg → Uithoorn → Kockengen → <strong>Het Lint</strong> → <strong>Dafne Schippersbrug (fietsbrug)</strong> → Europalaan 300.
-      </div>
-      <div class="route-btn-grid">
-        <a id="btn-r2-heen" class="route-launch-btn" style="background:linear-gradient(135deg,#d97706,#ea580c)" href="#" target="_blank">
-          ⚡ HEEN (38.4km Kortste)
-          <span>Locked in Google Maps</span>
-        </a>
-        <a id="btn-r2-terug" class="route-launch-btn" style="background:linear-gradient(135deg,#b45309,#c2410c)" href="#" target="_blank">
-          🏠 TERUG (38.4km Kortste)
-          <span>Locked in Google Maps</span>
-        </a>
-      </div>
-    </div>
-
-    <div class="route-card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <span style="font-weight:700;font-size:13.5px;color:#a855f7">🟢 Route 3: Non-Stop 60km/h Polder (Slechts 2 Stoplichten!)</span>
-        <span style="font-size:11.5px;font-weight:700;color:#c084fc">40.9 km • ~46 min</span>
-      </div>
-      <div style="font-size:11.5px;color:var(--muted);margin-top:3px">
-        <strong>Letterlijk slechts 2 stoplichten op 40.9 km:</strong> Bovenkerkerweg (0 lichten) → Uithoorn → Kockengen → Thematerweg (60km/h) → Zandweg De Meern → De Meernbrug → Rooseveltlaan → Europalaan 300.
-      </div>
-      <div class="route-btn-grid">
-        <a id="btn-r3-heen" class="route-launch-btn" style="background:linear-gradient(135deg,#7e22ce,#6d28d9)" href="#" target="_blank">
-          🟢 HEEN (2 Stoplichten)
-          <span>Locked in Google Maps</span>
-        </a>
-        <a id="btn-r3-terug" class="route-launch-btn" style="background:linear-gradient(135deg,#6b21a8,#5b21b6)" href="#" target="_blank">
-          🏠 TERUG (2 Stoplichten)
-          <span>Locked in Google Maps</span>
-        </a>
-      </div>
-    </div>
-  </div>
-</div>
 
 <div id="drawer" onclick="if(event.target.id==='drawer')toggleDrawer(false)">
   <div class="drawer-panel">
-    <div class="drawer-hdr">
-      <span style="font-weight:700;font-size:16px">Workspaces & Chats</span>
-      <button class="btn-icon" onclick="toggleDrawer(false)">✕</button>
-    </div>
+    <button class="new-conv-btn" onclick="toggleDrawer(false);promptNewChat()">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+        <path d="M8 3v10M3 8h10"/>
+      </svg>
+      <span>New conversation</span>
+    </button>
+    <div class="section-label">Recent</div>
     <div class="conv-list" id="conv-list"></div>
-    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--card-border);display:flex;flex-direction:column;gap:8px">
-      <button class="btn-icon" style="width:100%;text-align:center" onclick="syncObsidian()">🔄 Sync Obsidian Vault Now</button>
-    </div>
   </div>
 </div>
 
 <div id="chat"></div>
 
 <footer>
-  <textarea id="input" rows="1" placeholder="Message Antigravity (Wi-Fi or 5G)..." oninput="this.style.height='auto';this.style.height=(this.scrollHeight)+'px'"></textarea>
-  <button class="send-btn" onclick="sendMessage()">↑</button>
+  <div class="composer">
+    <textarea id="input" rows="1" placeholder="Ask Antigravity..." oninput="this.style.height='auto';this.style.height=(this.scrollHeight)+'px'"></textarea>
+    <div class="composer-bar">
+      <div class="composer-meta">
+        <span>Gemini 2.5 Pro</span>
+      </div>
+      <button class="send-btn" onclick="sendMessage()" aria-label="Send">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 13V3M3.5 7.5L8 3l4.5 4.5"/>
+        </svg>
+      </button>
+    </div>
+  </div>
 </footer>
 
 <script>
 let currentConv = "90a21ecb-1307-4222-821b-4e7ce0c293ba";
 let lastStepCount = -1;
-let mapInstance = null;
 let API_BASE = "";
+
+if (window.marked) {
+  marked.setOptions({ gfm: true, breaks: true });
+}
 
 async function resolveApiBase() {
   try {
-    const r = await fetch("/api/conversations", {signal: AbortSignal.timeout(1800)});
+    const r = await fetch("/api/conversations", {signal: AbortSignal.timeout(1600)});
     if (r.ok) { API_BASE = ""; return; }
   } catch (e) {}
   try {
@@ -472,52 +453,9 @@ async function resolveApiBase() {
     const info = JSON.parse(gj.files["agy_endpoint.json"].content);
     if (info.tunnel_url) {
       API_BASE = info.tunnel_url;
-      document.getElementById("conn-label").textContent = "5G Cloud Tunnel • Live";
+      return;
     }
   } catch (e) {}
-}
-
-async function openRouteModal() {
-  document.getElementById("route-modal").classList.add("open");
-  try {
-    const r = await fetch(API_BASE ? (API_BASE + "/api/routes") : "routes.json").catch(() => fetch("routes.json"));
-    const data = await r.json();
-    document.getElementById("btn-r1-heen").href = data.route1.gmaps_heen;
-    document.getElementById("btn-r1-terug").href = data.route1.gmaps_terug;
-    document.getElementById("btn-r2-heen").href = data.route2.gmaps_heen;
-    document.getElementById("btn-r2-terug").href = data.route2.gmaps_terug;
-    if (data.route3) {
-      document.getElementById("btn-r3-heen").href = data.route3.gmaps_heen;
-      document.getElementById("btn-r3-terug").href = data.route3.gmaps_terug;
-    }
-    setTimeout(() => {
-      if (!mapInstance) {
-        mapInstance = L.map("map").setView([52.175, 4.965], 10);
-        L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-          attribution: "&copy; OSM"
-        }).addTo(mapInstance);
-        L.polyline(data.route2.latlons, {color: "#f59e0b", weight: 4, opacity: 0.75}).addTo(mapInstance);
-        if (data.route3) {
-          L.polyline(data.route3.latlons, {color: "#a855f7", weight: 4, opacity: 0.75}).addTo(mapInstance);
-        }
-        const p1 = L.polyline(data.route1.latlons, {color: "#38bdf8", weight: 5, opacity: 0.95}).addTo(mapInstance);
-        mapInstance.fitBounds(p1.getBounds(), {padding: [14, 14]});
-      } else {
-        mapInstance.invalidateSize();
-      }
-    }, 150);
-  } catch (e) {}
-}
-
-function closeRouteModal() {
-  document.getElementById("route-modal").classList.remove("open");
-}
-
-function showToast(msg) {
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.style.display = "block";
-  setTimeout(() => t.style.display = "none", 2600);
 }
 
 function toggleDrawer(open) {
@@ -538,7 +476,7 @@ async function loadConversations() {
       div.onclick = () => {
         currentConv = c.id;
         lastStepCount = -1;
-        document.getElementById("hdr-title").textContent = c.title.slice(0, 22);
+        document.getElementById("hdr-title").textContent = c.title;
         toggleDrawer(false);
         loadMessages(true);
       };
@@ -553,6 +491,20 @@ function escapeHtml(s) {
   return (s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 }
 
+function renderMarkdown(md) {
+  if (!md) return "";
+  if (window.marked) {
+    let html = marked.parse(md);
+    html = html.replace(/<table>/g, '<div class="table-wrap"><table>').replace(/<\/table>/g, '</table></div>');
+    return html;
+  }
+  let out = escapeHtml(md);
+  out = out.replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>");
+  out = out.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+  out = out.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  return out.replace(/\n/g, "<br>");
+}
+
 async function loadMessages(forceScroll) {
   try {
     const r = await fetch(API_BASE + "/api/messages?id=" + encodeURIComponent(currentConv));
@@ -563,16 +515,29 @@ async function loadMessages(forceScroll) {
     chat.innerHTML = "";
     msgs.forEach(m => {
       const div = document.createElement("div");
-      div.className = "msg " + m.role;
-      let inner = "";
-      if (m.tools && m.tools.length) {
-        inner += `<div class="tools-row">` + m.tools.map(t => `<span class="tool-pill">⚙ ${escapeHtml(t)}</span>`).join("") + `</div>`;
+      if (m.role === "user") {
+        div.className = "turn-user";
+        div.textContent = m.content;
+      } else {
+        div.className = "turn-agent";
+        let inner = "";
+        if (m.thinking) {
+          inner += `<div class="thought-block" onclick="this.classList.toggle('open')">
+            <div class="thought-summary"><span class="thought-chev">›</span><span>Thought</span></div>
+            <div class="thought-body">${escapeHtml(m.thinking)}</div>
+          </div>`;
+        }
+        if (m.tools && m.tools.length) {
+          inner += `<div class="tools-list">` + m.tools.map(t => `<div class="tool-row">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-6.5"/></svg>
+            <span>${escapeHtml(t)}</span>
+          </div>`).join("") + `</div>`;
+        }
+        if (m.content) {
+          inner += `<div class="markdown-body">${renderMarkdown(m.content)}</div>`;
+        }
+        div.innerHTML = inner;
       }
-      if (m.thinking && !m.content) {
-        inner += `<div class="think-box">${escapeHtml(m.thinking.slice(0, 220))}</div>`;
-      }
-      inner += `<div>${escapeHtml(m.content || (m.thinking ? "Working..." : "")).replace(/\n/g, "<br>")}</div>`;
-      div.innerHTML = inner;
       chat.appendChild(div);
     });
     chat.scrollTop = chat.scrollHeight;
@@ -587,7 +552,7 @@ async function sendMessage() {
   inp.style.height = "auto";
   const chat = document.getElementById("chat");
   const div = document.createElement("div");
-  div.className = "msg user";
+  div.className = "turn-user";
   div.textContent = text;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
@@ -597,14 +562,12 @@ async function sendMessage() {
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({id: currentConv, content: text})
   });
-  showToast("Prompt delivered to PC!");
   setTimeout(() => loadMessages(true), 800);
 }
 
 async function promptNewChat() {
-  const promptText = window.prompt("Start a new Antigravity task on your PC:");
+  const promptText = window.prompt("New conversation prompt:");
   if (!promptText || !promptText.trim()) return;
-  showToast("Starting new agent...");
   const r = await fetch(API_BASE + "/api/new", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
@@ -616,13 +579,6 @@ async function promptNewChat() {
     lastStepCount = -1;
     loadMessages(true);
   }
-  showToast("New agent launched!");
-}
-
-async function syncObsidian() {
-  showToast("Syncing Obsidian Vault...");
-  await fetch(API_BASE + "/api/sync-obsidian", {method: "POST"});
-  showToast("Obsidian Vault Synced!");
 }
 
 (async () => {
