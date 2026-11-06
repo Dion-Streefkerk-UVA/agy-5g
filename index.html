@@ -7,10 +7,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Antigravity">
 <meta name="theme-color" content="#0e0f12">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="apple-touch-icon-precomposed" href="apple-touch-icon.png">
-<link rel="icon" type="image/png" href="apple-touch-icon.png">
-<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <title>Antigravity</title>
 <style>
@@ -521,14 +521,21 @@ async function loadMessages(forceScroll) {
       } else {
         div.className = "turn-agent";
         let inner = "";
-        if (m.thinking) {
+        const tCount = (m.tools && m.tools.length) ? m.tools.length : 0;
+        if (m.thinking || tCount > 0) {
+          const label = tCount > 0 ? `Thought · ${tCount} ${tCount === 1 ? 'action' : 'actions'}` : `Thought`;
+          const toolsHtml = tCount > 0 ? (`<div class="tools-list" style="margin-bottom:8px;">` + m.tools.map(t => `<div class="tool-row">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-6.5"/></svg>
+            <span>${escapeHtml(t)}</span>
+          </div>`).join("") + `</div>`) : "";
           inner += `<div class="thought-block" onclick="this.classList.toggle('open')">
-            <div class="thought-summary"><span class="thought-chev">›</span><span>Thought</span></div>
-            <div class="thought-body">${escapeHtml(m.thinking)}</div>
+            <div class="thought-summary"><span class="thought-chev">›</span><span>${label}</span></div>
+            <div class="thought-body">${toolsHtml}${escapeHtml(m.thinking || "")}</div>
           </div>`;
         }
-        if (m.tools && m.tools.length) {
-          inner += `<div class="tools-list">` + m.tools.map(t => `<div class="tool-row">
+        if (!m.content && tCount > 0) {
+          const recentTools = m.tools.slice(-2);
+          inner += `<div class="tools-list">` + recentTools.map(t => `<div class="tool-row">
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-6.5"/></svg>
             <span>${escapeHtml(t)}</span>
           </div>`).join("") + `</div>`;
