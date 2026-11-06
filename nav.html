@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0e0f12">
+<title>Brommer Nav — 55 km/h</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root {
+    --bg: #0e0f12;
+    --panel: rgba(18, 20, 26, 0.94);
+    --border: #262934;
+    --text: #f3f4f6;
+    --muted: #9ca3af;
+    --accent: #3b82f6;
+    --green: #10b981;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; width: 100%; height: 100dvh;
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+    overflow: hidden; user-select: none;
+  }
+  #map { position: absolute; inset: 0; z-index: 1; background: #0e0f12; }
+
+  /* Top Turn-by-Turn Navigation Banner */
+  .nav-banner {
+    position: absolute;
+    top: calc(env(safe-area-inset-top, 12px) + 8px);
+    left: 12px; right: 12px;
+    z-index: 20;
+    background: var(--panel);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+  }
+  .turn-box {
+    width: 52px; height: 52px;
+    border-radius: 12px;
+    background: #1d2230;
+    border: 1px solid #2e364f;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    color: #60a5fa;
+  }
+  .turn-info { flex: 1; min-width: 0; }
+  .turn-dist {
+    font-size: 24px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1;
+    color: #ffffff;
+  }
+  .turn-street {
+    font-size: 15px; font-weight: 500; color: #d1d5db;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-top: 3px;
+  }
+  .turn-sub {
+    font-size: 12px; color: var(--muted); margin-top: 2px;
+  }
+
+  /* Route & Direction Selector Pills */
+  .top-controls {
+    position: absolute;
+    top: calc(env(safe-area-inset-top, 12px) + 96px);
+    left: 12px; right: 12px;
+    z-index: 20;
+    display: flex; gap: 6px; overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .top-controls::-webkit-scrollbar { display: none; }
+  .pill {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 7px 12px;
+    border-radius: 10px;
+    font-size: 12.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .pill.active {
+    background: #1e293b;
+    color: #ffffff;
+    border-color: #3b82f6;
+  }
+
+  /* Floating Right Map Buttons */
+  .map-tools {
+    position: absolute;
+    right: 12px;
+    bottom: calc(env(safe-area-inset-bottom, 16px) + 152px);
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .tool-btn {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+    font-size: 11px; font-weight: 700;
+  }
+  .tool-btn.active { border-color: var(--accent); color: #60a5fa; }
+
+  /* Bottom Handlebar HUD */
+  .bottom-hud {
+    position: absolute;
+    bottom: calc(env(safe-area-inset-bottom, 12px) + 8px);
+    left: 12px; right: 12px;
+    z-index: 20;
+    background: var(--panel);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 12px 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+  }
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+  }
+  .metric-val {
+    font-size: 20px; font-weight: 700; color: #ffffff;
+    font-variant-numeric: tabular-nums;
+  }
+  .metric-lbl {
+    font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em;
+    margin-top: 2px;
+  }
+  .hud-actions {
+    display: flex; gap: 8px; margin-top: 10px;
+  }
+  .btn-primary {
+    flex: 1;
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+  }
+  .btn-primary.following {
+    background: #059669;
+  }
+  .btn-secondary {
+    background: #1f2430;
+    color: #e5e7eb;
+    border: 1px solid #32394a;
+    border-radius: 10px;
+    padding: 11px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div class="nav-banner">
+  <div class="turn-box" id="turn-icon">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 19V5M5 12l7-7 7 7"/>
+    </svg>
+  </div>
+  <div class="turn-info">
+    <div class="turn-dist" id="turn-dist">Route gereed</div>
+    <div class="turn-street" id="turn-street">Tik op Start GPS voor live navigatie</div>
+    <div class="turn-sub" id="turn-sub">100% vaste route · geen herberekening</div>
+  </div>
+</div>
+
+<div class="top-controls">
+  <button class="pill active" id="dir-heen" onclick="setDir('heen')">Heen (Werk)</button>
+  <button class="pill" id="dir-terug" onclick="setDir('terug')">Terug (Huis)</button>
+  <button class="pill active" id="rt-r1" onclick="setRoute('r1')">1. Het Lint (39,2 km)</button>
+  <button class="pill" id="rt-r2" onclick="setRoute('r2')">2. Dafne (38,2 km)</button>
+  <button class="pill" id="rt-r3" onclick="setRoute('r3')">3. Polder (40,3 km)</button>
+</div>
+
+<div class="map-tools">
+  <button class="tool-btn" id="btn-theme" onclick="toggleMapTheme()" title="Wissel kaartstijl">DAG</button>
+  <button class="tool-btn" id="btn-center" onclick="recenterMap()" title="Centreer op GPS">GPS</button>
+  <button class="tool-btn" onclick="fitFullRoute()" title="Toon hele route">OVERZ</button>
+</div>
+
+<div class="bottom-hud">
+  <div class="metrics-grid">
+    <div>
+      <div class="metric-val" id="val-speed">0 km/h</div>
+      <div class="metric-lbl">Snelheid</div>
+    </div>
+    <div>
+      <div class="metric-val" id="val-rem">39,2 km</div>
+      <div class="metric-lbl">Resterend</div>
+    </div>
+    <div>
+      <div class="metric-val" id="val-eta">~44 min</div>
+      <div class="metric-lbl">Aankomst (55)</div>
+    </div>
+  </div>
+  <div class="hud-actions">
+    <button class="btn-primary" id="btn-start" onclick="toggleTracking()">Start Live GPS Cockpit</button>
+    <a class="btn-secondary" id="btn-gmaps" href="#" target="_blank" rel="noopener">Google Maps</a>
+  </div>
+</div>
+
+<script>
+let ROUTES = {};
+let curRoute = "r1";
+let curDir = "heen";
+let map, tileLayer, routePolyline, routeGlow, userMarker, accuracyCircle, nextStepMarker;
+let watchId = null;
+let isFollowing = false;
+let lightTheme = false;
+let wakeLockObj = null;
+
+const params = new URLSearchParams(location.search);
+if (params.get("route") && ["r1","r2","r3"].includes(params.get("route"))) curRoute = params.get("route");
+if (params.get("dir") && ["heen","terug"].includes(params.get("dir"))) curDir = params.get("dir");
+
+function initMap() {
+  map = L.map("map", { zoomControl: false, attributionControl: false }).setView([52.175, 4.96], 11);
+  setTileTheme(false);
+  map.on("dragstart", () => {
+    if (isFollowing) {
+      isFollowing = false;
+      document.getElementById("btn-center").classList.remove("active");
+    }
+  });
+}
+
+function setTileTheme(light) {
+  lightTheme = light;
+  if (tileLayer) map.removeLayer(tileLayer);
+  const url = light
+    ? "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+    : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+  tileLayer = L.tileLayer(url, { maxZoom: 19 }).addTo(map);
+  document.getElementById("btn-theme").textContent = light ? "NACHT" : "DAG";
+}
+
+function toggleMapTheme() { setTileTheme(!lightTheme); }
+
+function getTurnSvg(mod, type) {
+  if (type === "roundabout" || type === "rotary") {
+    return `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"/><path d="M12 6V2m0 0l3 3m-3-3L9 5"/></svg>`;
+  }
+  if (mod && mod.includes("left")) {
+    return `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 19v-7a4 4 0 0 0-4-4H6m0 0l4-4M6 8l4 4"/></svg>`;
+  }
+  if (mod && mod.includes("right")) {
+    return `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 19v-7a4 4 0 0 1 4-4h8m0 0l-4-4m4 4l-4 4"/></svg>`;
+  }
+  return `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>`;
+}
+
+function modToDutch(mod, type) {
+  if (type === "roundabout" || type === "rotary") return "Rotonde op naar";
+  if (!mod) return "Volg";
+  if (mod === "left" || mod === "sharp left") return "Linksaf naar";
+  if (mod === "slight left") return "Houd links aan naar";
+  if (mod === "right" || mod === "sharp right") return "Rechtsaf naar";
+  if (mod === "slight right") return "Houd rechts aan naar";
+  return "Rechtdoor op";
+}
+
+function renderActiveRoute(fit = true) {
+  const r = ROUTES[curRoute];
+  if (!r) return;
+  const data = r[curDir];
+  if (!data) return;
+
+  ["r1","r2","r3"].forEach(k => document.getElementById("rt-" + k).classList.toggle("active", k === curRoute));
+  ["heen","terug"].forEach(d => document.getElementById("dir-" + d).classList.toggle("active", d === curDir));
+
+  document.getElementById("btn-gmaps").href = curDir === "heen" ? r.gmaps_heen : r.gmaps_terug;
+
+  if (routeGlow) map.removeLayer(routeGlow);
+  if (routePolyline) map.removeLayer(routePolyline);
+
+  routeGlow = L.polyline(data.coords, { color: r.color, weight: 10, opacity: 0.25, lineCap: "round" }).addTo(map);
+  routePolyline = L.polyline(data.coords, { color: r.color, weight: 5, opacity: 0.95, lineCap: "round" }).addTo(map);
+
+  const distKm = data.distance_km;
+  const mins = Math.round((distKm / 55.0) * 60 + 2);
+  document.getElementById("val-rem").textContent = distKm.toFixed(1).replace(".", ",") + " km";
+  document.getElementById("val-eta").textContent = "~" + mins + " min";
+
+  if (!watchId && data.steps && data.steps.length > 1) {
+    const s = data.steps[1];
+    document.getElementById("turn-dist").textContent = distKm.toFixed(1).replace(".", ",") + " km";
+    document.getElementById("turn-street").textContent = r.title + " (" + (curDir === "heen" ? "Heen" : "Terug") + ")";
+    document.getElementById("turn-sub").textContent = "Eerste weg: " + s.name + " · Tik op Start Live GPS Cockpit";
+  }
+
+  if (fit) map.fitBounds(routePolyline.getBounds(), { padding: [110, 35] });
+}
+
+function setRoute(id) { curRoute = id; renderActiveRoute(!isFollowing); }
+function setDir(dir) { curDir = dir; renderActiveRoute(!isFollowing); }
+function fitFullRoute() { isFollowing = false; document.getElementById("btn-center").classList.remove("active"); if (routePolyline) map.fitBounds(routePolyline.getBounds(), { padding: [110, 35] }); }
+
+function recenterMap() {
+  isFollowing = true;
+  document.getElementById("btn-center").classList.add("active");
+  if (userMarker) {
+    map.setView(userMarker.getLatLng(), 16, { animate: true });
+  }
+}
+
+function haversineMeters(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const toRad = Math.PI / 180;
+  const dLat = (lat2 - lat1) * toRad;
+  const dLon = (lon2 - lon1) * toRad;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*toRad)*Math.cos(lat2*toRad)*Math.sin(dLon/2)**2;
+  return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function fmtMeters(m) {
+  if (m < 1000) return Math.round(m / 5) * 5 + " m";
+  return (m / 1000).toFixed(1).replace(".", ",") + " km";
+}
+
+async function requestWakeLock() {
+  try {
+    if ("wakeLock" in navigator) {
+      wakeLockObj = await navigator.wakeLock.request("screen");
+    }
+  } catch (e) {}
+}
+
+function toggleTracking() {
+  const btn = document.getElementById("btn-start");
+  if (watchId !== null) {
+    navigator.geolocation.clearWatch(watchId);
+    watchId = null;
+    isFollowing = false;
+    btn.textContent = "Start Live GPS Cockpit";
+    btn.classList.remove("following");
+    return;
+  }
+  requestWakeLock();
+  isFollowing = true;
+  document.getElementById("btn-center").classList.add("active");
+  btn.textContent = "GPS Actief (Volgt Route)";
+  btn.classList.add("following");
+
+  watchId = navigator.geolocation.watchPosition(onGpsUpdate, (err) => {
+    document.getElementById("turn-sub").textContent = "Geef locatie-toegang in Safari voor live GPS";
+  }, {
+    enableHighAccuracy: true,
+    maximumAge: 0,
+    timeout: 10000
+  });
+}
+
+function onGpsUpdate(pos) {
+  const lat = pos.coords.latitude;
+  const lon = pos.coords.longitude;
+  const acc = pos.coords.accuracy || 10;
+  const spdMs = pos.coords.speed;
+  const kmh = (spdMs !== null && spdMs >= 0) ? Math.round(spdMs * 3.6) : 0;
+  document.getElementById("val-speed").textContent = kmh + " km/h";
+
+  const latlng = [lat, lon];
+  if (!userMarker) {
+    userMarker = L.circleMarker(latlng, {
+      radius: 8, color: "#ffffff", weight: 3, fillColor: "#2563eb", fillOpacity: 1
+    }).addTo(map);
+    accuracyCircle = L.circle(latlng, { radius: acc, color: "#3b82f6", weight: 1, fillOpacity: 0.12 }).addTo(map);
+  } else {
+    userMarker.setLatLng(latlng);
+    accuracyCircle.setLatLng(latlng);
+    accuracyCircle.setRadius(acc);
+  }
+
+  if (isFollowing) {
+    map.setView(latlng, Math.max(map.getZoom(), 16), { animate: true });
+  }
+
+  const r = ROUTES[curRoute];
+  if (!r) return;
+  const data = r[curDir];
+  if (!data || !data.coords.length) return;
+
+  // Find closest point on route geometry
+  let bestIdx = 0;
+  let bestDist = Infinity;
+  for (let i = 0; i < data.coords.length; i++) {
+    const d = haversineMeters(lat, lon, data.coords[i][0], data.coords[i][1]);
+    if (d < bestDist) { bestDist = d; bestIdx = i; }
+  }
+
+  // Remaining distance along coords from bestIdx to end
+  let remMeters = 0;
+  for (let i = bestIdx; i < data.coords.length - 1; i++) {
+    remMeters += haversineMeters(data.coords[i][0], data.coords[i][1], data.coords[i+1][0], data.coords[i+1][1]);
+  }
+  const remKm = remMeters / 1000.0;
+  document.getElementById("val-rem").textContent = remKm.toFixed(1).replace(".", ",") + " km";
+
+  const effSpeed = kmh > 15 ? kmh : 52;
+  const remMins = Math.max(1, Math.round((remKm / effSpeed) * 60));
+  const etaDate = new Date(Date.now() + remMins * 60000);
+  const hh = String(etaDate.getHours()).padStart(2, "0");
+  const mm = String(etaDate.getMinutes()).padStart(2, "0");
+  document.getElementById("val-eta").textContent = `${hh}:${mm} (${remMins}m)`;
+
+  // Find next upcoming turn step ahead of current progress
+  const totalMeters = data.distance_km * 1000;
+  const traveledMeters = Math.max(0, totalMeters - remMeters);
+  let nextStep = data.steps[data.steps.length - 1];
+  for (let i = 0; i < data.steps.length; i++) {
+    if (data.steps[i].cum > traveledMeters + 20) {
+      nextStep = data.steps[i];
+      break;
+    }
+  }
+  if (nextStep) {
+    const distToTurn = haversineMeters(lat, lon, nextStep.lat, nextStep.lon);
+    document.getElementById("turn-icon").innerHTML = getTurnSvg(nextStep.mod, nextStep.type);
+    document.getElementById("turn-dist").textContent = fmtMeters(distToTurn);
+    document.getElementById("turn-street").textContent = `${modToDutch(nextStep.mod, nextStep.type)} ${nextStep.name}`;
+    document.getElementById("turn-sub").textContent = bestDist > 120
+      ? `Afstand tot route-lijn: ${Math.round(bestDist)} m`
+      : `Op optimale route · ${r.title}`;
+  }
+}
+
+initMap();
+fetch("nav_routes.json")
+  .then(r => r.json())
+  .then(j => {
+    ROUTES = j;
+    renderActiveRoute(true);
+    if (params.get("autostart") === "1") {
+      toggleTracking();
+    }
+  });
+</script>
+</body>
+</html>
