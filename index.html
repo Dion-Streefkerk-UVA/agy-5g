@@ -355,16 +355,16 @@ textarea:focus {
 
 <div class="stats-hud">
   <div class="stat-chip" onclick="openRouteModal()" style="cursor:pointer;border-color:rgba(251,191,36,0.4);background:rgba(251,191,36,0.12)">
-    <span>🛵</span><strong style="color:#fbbf24">55km/h Werk Route (40.2km)</strong><span>• Locked Maps</span>
+    <span>🛵</span><strong style="color:#fbbf24">55km/h Werk Route (38.4–39.6km)</strong><span>• ~44m Locked</span>
   </div>
   <div class="stat-chip"><span>⚡</span><strong>Claude / AGY</strong><span id="stat-model">Pro High • Active</span></div>
-  <div class="stat-chip"><span>☁️</span><strong>Obsidian 5G</strong><span id="stat-steps">8.4 MB Slim</span></div>
+  <div class="stat-chip"><span>☁️</span><strong>Obsidian 5G</strong><span id="stat-steps">8.6 MB Slim</span></div>
 </div>
 
 <div class="route-modal" id="route-modal">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
     <div>
-      <div style="font-weight:800;font-size:16px;color:#fbbf24">🛵 55 km/h Gele Plaat • Optimal Werk Routes</div>
+      <div style="font-weight:800;font-size:16px;color:#fbbf24">🛵 55 km/h Out-of-the-Box Werk Routes</div>
       <div style="font-size:11.5px;color:var(--muted)">Eyckenstein 127 (Westwijk) ↔ Europalaan 300 (Utrecht) • 0 Pontjes • Hard-Locked</div>
     </div>
     <button class="btn-icon" onclick="closeRouteModal()">✕</button>
@@ -375,15 +375,15 @@ textarea:focus {
   <div style="overflow-y:auto;max-height:54%">
     <div class="route-card">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <span style="font-weight:700;font-size:13.5px;color:#38bdf8">🏆 Route 1: Zijdelweg – Kockengen – Thematerweg Express</span>
-        <span style="font-size:11.5px;font-weight:700;color:#34d399">40.2 km • ~48 min</span>
+        <span style="font-weight:700;font-size:13.5px;color:#38bdf8">🏆 Route 1: Bovenkerkerweg – Kockengen – Het Lint – De Meernbrug</span>
+        <span style="font-size:11.5px;font-weight:700;color:#34d399">39.6 km • ~44 min</span>
       </div>
       <div style="font-size:11.5px;color:var(--muted);margin-top:3px">
-        <strong>Snelste & minste stoplichten (9 totaal, 0 pontjes):</strong> Rechtstreeks via Zijdelweg → Uithoorn Brug → Mijdrecht → Wilnis N212 → Portengen Kockengen (60km/h) → Thematerweg (60km/h buiten Vleuten om) → De Meernbrug → Europalaan 300.
+        <strong>Ultieme Out-of-the-Box Hybride (Slechts 4 stoplichten in 39.6 km!):</strong> 0 stoplichten in Amstelveen/Uithoorn via Bovenkerkerweg → Kockengen → diagonaal over <strong>Het Lint (Máximapark asfaltbaan)</strong> → <strong>De Meernbrug</strong> (slaat 24 Oktoberplein volledig over!) → Rooseveltlaan → Europalaan 300.
       </div>
       <div class="route-btn-grid">
         <a id="btn-r1-heen" class="route-launch-btn" style="background:linear-gradient(135deg,#0284c7,#2563eb)" href="#" target="_blank">
-          🚀 HEEN (Huis → Werk)
+          🚀 HEEN (39.6km • 4 Lichts)
           <span>Locked in Google Maps</span>
         </a>
         <a id="btn-r1-terug" class="route-launch-btn" style="background:linear-gradient(135deg,#1d4ed8,#4f46e5)" href="#" target="_blank">
@@ -395,19 +395,19 @@ textarea:focus {
 
     <div class="route-card">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <span style="font-weight:700;font-size:13.5px;color:#a855f7">⚡ Route 2: Zijdelweg – Kockengen – Vleuten Direct</span>
-        <span style="font-size:11.5px;font-weight:700;color:#c084fc">40.1 km • ~49 min</span>
+        <span style="font-weight:700;font-size:13.5px;color:#fbbf24">⚡ Route 2: Zijdelweg – Kockengen – Het Lint – Dafne Schippersbrug</span>
+        <span style="font-size:11.5px;font-weight:700;color:#fcd34d">38.4 km • ~43 min</span>
       </div>
       <div style="font-size:11.5px;color:var(--muted);margin-top:3px">
-        <strong>Kortste afstand (40.1 km, 0 pontjes):</strong> Zelfde polderroute t/m Haarzuilens, daarna rechtstreeks door Vleuten & Langerakbaan (buiten Máximapark om) → De Meernbrug → Europalaan 300.
+        <strong>Wiskundig allerkortste 0-pontje route die bestaat (38.37 km!):</strong> Rechtstreeks via Zijdelweg → Uithoorn → Kockengen → <strong>Het Lint</strong> → <strong>Dafne Schippersbrug (fietsbrug)</strong> → Europalaan 300.
       </div>
       <div class="route-btn-grid">
-        <a id="btn-r3-heen" class="route-launch-btn" style="background:linear-gradient(135deg,#7e22ce,#6d28d9)" href="#" target="_blank">
-          ⚡ HEEN (Kortste km)
+        <a id="btn-r2-heen" class="route-launch-btn" style="background:linear-gradient(135deg,#d97706,#ea580c)" href="#" target="_blank">
+          ⚡ HEEN (38.4km Kortste)
           <span>Locked in Google Maps</span>
         </a>
-        <a id="btn-r3-terug" class="route-launch-btn" style="background:linear-gradient(135deg,#6b21a8,#5b21b6)" href="#" target="_blank">
-          🏠 TERUG (Kortste km)
+        <a id="btn-r2-terug" class="route-launch-btn" style="background:linear-gradient(135deg,#b45309,#c2410c)" href="#" target="_blank">
+          🏠 TERUG (38.4km Kortste)
           <span>Locked in Google Maps</span>
         </a>
       </div>
@@ -415,19 +415,19 @@ textarea:focus {
 
     <div class="route-card">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <span style="font-weight:700;font-size:13.5px;color:#fbbf24">🌊 Route 3: Amsterdam-Rijnkanaal (15km Rechtdoor)</span>
-        <span style="font-size:11.5px;font-weight:700;color:#fcd34d">42.3 km • ~53 min</span>
+        <span style="font-weight:700;font-size:13.5px;color:#a855f7">🟢 Route 3: Non-Stop 60km/h Polder (Slechts 2 Stoplichten!)</span>
+        <span style="font-size:11.5px;font-weight:700;color:#c084fc">40.9 km • ~46 min</span>
       </div>
       <div style="font-size:11.5px;color:var(--muted);margin-top:3px">
-        <strong>15 km kaarsrecht 55 km/h langs het kanaal zonder stoplichten:</strong> Zijdelweg → N201 → Ter Aase Zuwe → Breukelen → <strong>Westkanaaldijk</strong> → Maarssen → De Meernbrug → Europalaan 300.
+        <strong>Letterlijk slechts 2 stoplichten op 40.9 km:</strong> Bovenkerkerweg (0 lichten) → Uithoorn → Kockengen → Thematerweg (60km/h) → Zandweg De Meern → De Meernbrug → Rooseveltlaan → Europalaan 300.
       </div>
       <div class="route-btn-grid">
-        <a id="btn-r2-heen" class="route-launch-btn" style="background:linear-gradient(135deg,#d97706,#ea580c)" href="#" target="_blank">
-          🌊 HEEN (Kanaaldijk)
+        <a id="btn-r3-heen" class="route-launch-btn" style="background:linear-gradient(135deg,#7e22ce,#6d28d9)" href="#" target="_blank">
+          🟢 HEEN (2 Stoplichten)
           <span>Locked in Google Maps</span>
         </a>
-        <a id="btn-r2-terug" class="route-launch-btn" style="background:linear-gradient(135deg,#b45309,#c2410c)" href="#" target="_blank">
-          🏠 TERUG (Kanaaldijk)
+        <a id="btn-r3-terug" class="route-launch-btn" style="background:linear-gradient(135deg,#6b21a8,#5b21b6)" href="#" target="_blank">
+          🏠 TERUG (2 Stoplichten)
           <span>Locked in Google Maps</span>
         </a>
       </div>
