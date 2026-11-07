@@ -703,7 +703,7 @@
     <span class="tool-sub" id="lbl-theme">DAGKAART</span>
   </button>
 
-  <a class="tool-btn" id="btn-gpx" href="gpx/r1_heen.gpx" download="r1_heen.gpx" title="Download GPX-bestand (voor OsmAnd / Komoot)">
+  <a class="tool-btn" id="btn-gpx" href="gpx/r1_heen.gpx" download="r1_heen.gpx" onclick="downloadCurrentGpx(event)" title="Download GPX-bestand (voor OsmAnd / Komoot)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
       <polyline points="7 10 12 15 17 10"/>
@@ -1119,6 +1119,31 @@ function updateRouteProgressGeoJSON(force = false) {
       coordinates: aheadCoords.length >= 2 ? aheadCoords : routeCoordsLngLat
     }
   });
+}
+
+function downloadCurrentGpx(e) {
+  if (!NAV_DATA || !NAV_DATA[curRoute] || !NAV_DATA[curRoute][curDir]) return;
+  e.preventDefault();
+  const routeObj = NAV_DATA[curRoute];
+  const rData = routeObj[curDir];
+  const dirLabel = curDir === "heen" ? "Heen (Westwijk - Utrecht)" : "Terug (Utrecht - Westwijk)";
+  const fullName = `${routeObj.title} - ${dirLabel}`.replace(/&/g, "&amp;");
+  let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="BrommerNav55kmh" xmlns="http://www.topografix.com/GPX/1/1">\n  <metadata><name>${fullName}</name></metadata>\n  <trk><name>${fullName}</name><trkseg>\n`;
+  for (let i = 0; i < rData.coords.length; i++) {
+    xml += `    <trkpt lat="${rData.coords[i][0]}" lon="${rData.coords[i][1]}"/>\n`;
+  }
+  xml += `  </trkseg></trk>\n</gpx>`;
+  const blob = new Blob([xml], { type: "application/gpx+xml" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${curRoute}_${curDir}.gpx`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 500);
 }
 
 function setDirection(dir) {
