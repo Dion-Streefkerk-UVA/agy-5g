@@ -13,15 +13,14 @@
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <style>
   :root {
-    --bg-glass: rgba(13, 17, 26, 0.92);
-    --bg-glass-heavy: rgba(10, 13, 20, 0.96);
-    --border-subtle: rgba(255, 255, 255, 0.13);
+    --bg-panel: #0d121c;
+    --bg-panel-heavy: #0a0e17;
+    --border-subtle: rgba(255, 255, 255, 0.12);
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
     --text-muted: #64748b;
     --accent: #3b82f6;
     --accent-bright: #60a5fa;
-    --accent-glow: rgba(59, 130, 246, 0.35);
     --green: #10b981;
     --amber: #f59e0b;
     --danger: #ef4444;
@@ -44,6 +43,7 @@
     color: var(--text-primary);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
+    touch-action: none;
   }
 
   #map {
@@ -60,16 +60,18 @@
     display: none !important;
   }
 
+  /* PORTRAIT / DEFAULT LAYOUT */
   .top-stack {
     position: absolute;
     top: max(10px, env(safe-area-inset-top));
-    left: 12px;
-    right: 12px;
+    left: max(10px, env(safe-area-inset-left));
+    right: max(10px, env(safe-area-inset-right));
     z-index: 1000;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 7px;
     pointer-events: none;
+    transform: translateZ(0);
   }
   .top-stack > * {
     pointer-events: auto;
@@ -78,22 +80,21 @@
   .selector-bar {
     display: flex;
     align-items: center;
-    gap: 6px;
-    background: var(--bg-glass);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    gap: 5px;
+    background: var(--bg-panel);
     border: 1px solid var(--border-subtle);
-    border-radius: 14px;
-    padding: 5px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    border-radius: 13px;
+    padding: 4px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
   }
 
   .dir-group {
     display: flex;
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
+    border-radius: 9px;
     padding: 2px;
     gap: 2px;
+    flex-shrink: 0;
   }
   .dir-btn {
     border: none;
@@ -102,16 +103,14 @@
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.03em;
-    padding: 6px 9px;
-    border-radius: 8px;
+    padding: 6px 8px;
+    border-radius: 7px;
     cursor: pointer;
-    transition: all 0.15s ease;
     white-space: nowrap;
   }
   .dir-btn.active {
     background: var(--accent);
     color: #ffffff;
-    box-shadow: 0 2px 10px var(--accent-glow);
   }
 
   .bar-divider {
@@ -137,59 +136,53 @@
     color: var(--text-secondary);
     font-size: 11px;
     font-weight: 600;
-    padding: 6px 7px;
-    border-radius: 9px;
+    padding: 6px 6px;
+    border-radius: 8px;
     cursor: pointer;
     text-align: center;
     white-space: nowrap;
-    transition: all 0.15s ease;
   }
   .route-pill.active {
     background: rgba(59, 130, 246, 0.22);
-    border-color: rgba(96, 165, 250, 0.60);
+    border-color: rgba(96, 165, 250, 0.65);
     color: #ffffff;
     font-weight: 700;
   }
 
   .maneuver-card {
-    background: var(--bg-glass-heavy);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+    background: var(--bg-panel-heavy);
     border: 1px solid var(--border-subtle);
-    border-radius: 18px;
-    padding: 12px 14px;
+    border-radius: 16px;
+    padding: 11px 13px;
     display: flex;
     align-items: center;
-    gap: 13px;
-    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.6);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    gap: 12px;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.6);
   }
   .maneuver-card.imminent {
-    border-color: rgba(16, 185, 129, 0.65);
-    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.65), 0 0 24px rgba(16, 185, 129, 0.22);
+    border-color: rgba(16, 185, 129, 0.75);
   }
 
   .turn-icon-box {
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
-    background: rgba(59, 130, 246, 0.14);
-    border: 1px solid rgba(59, 130, 246, 0.35);
+    width: 50px;
+    height: 50px;
+    border-radius: 13px;
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.38);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
     color: var(--accent-bright);
-    transition: all 0.2s ease;
   }
   .maneuver-card.imminent .turn-icon-box {
     background: rgba(16, 185, 129, 0.18);
-    border-color: rgba(16, 185, 129, 0.55);
+    border-color: rgba(16, 185, 129, 0.6);
     color: var(--green);
   }
   .turn-icon-box svg {
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
   }
 
   .turn-body {
@@ -203,7 +196,7 @@
     gap: 8px;
   }
   .turn-dist {
-    font-size: 25px;
+    font-size: 24px;
     font-weight: 800;
     letter-spacing: -0.03em;
     line-height: 1.05;
@@ -211,25 +204,25 @@
     font-variant-numeric: tabular-nums;
   }
   .turn-ActionTag {
-    font-size: 10.5px;
+    font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     color: var(--accent-bright);
-    background: rgba(59, 130, 246, 0.15);
-    padding: 3px 8px;
+    background: rgba(59, 130, 246, 0.16);
+    padding: 3px 7px;
     border-radius: 6px;
     white-space: nowrap;
   }
   .maneuver-card.imminent .turn-ActionTag {
     color: var(--green);
-    background: rgba(16, 185, 129, 0.16);
+    background: rgba(16, 185, 129, 0.18);
   }
   .turn-street {
-    font-size: 14.5px;
+    font-size: 14px;
     font-weight: 600;
     color: #e2e8f0;
-    margin-top: 3px;
+    margin-top: 2px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -248,18 +241,15 @@
     align-self: flex-start;
     display: none;
     align-items: center;
-    gap: 8px;
-    background: rgba(13, 17, 26, 0.92);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    gap: 7px;
+    background: var(--bg-panel);
     border: 1px solid var(--border-subtle);
-    border-radius: 11px;
-    padding: 6px 12px;
-    margin-top: -2px;
-    font-size: 12px;
+    border-radius: 10px;
+    padding: 5px 11px;
+    font-size: 11.5px;
     font-weight: 600;
     color: var(--text-secondary);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
   }
   .then-banner.visible {
     display: inline-flex;
@@ -268,41 +258,38 @@
     color: var(--text-muted);
     font-weight: 700;
     text-transform: uppercase;
-    font-size: 10px;
+    font-size: 9.5px;
     letter-spacing: 0.05em;
   }
 
   .offroute-banner {
-    background: rgba(239, 68, 68, 0.94);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: #dc2626;
     color: #ffffff;
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 700;
-    padding: 8px 14px;
-    border-radius: 12px;
+    padding: 7px 12px;
+    border-radius: 10px;
     text-align: center;
     letter-spacing: 0.02em;
     display: none;
-    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.35);
+    box-shadow: 0 6px 18px rgba(220, 38, 38, 0.4);
   }
 
   .map-tools {
     position: absolute;
-    right: 12px;
-    bottom: calc(max(14px, env(safe-area-inset-bottom)) + 114px);
+    right: max(10px, env(safe-area-inset-right));
+    bottom: calc(max(12px, env(safe-area-inset-bottom)) + 84px);
     z-index: 1000;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 7px;
+    transform: translateZ(0);
   }
   .tool-btn {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    background: var(--bg-glass);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
+    width: 46px;
+    height: 46px;
+    border-radius: 13px;
+    background: var(--bg-panel);
     border: 1px solid var(--border-subtle);
     color: var(--text-primary);
     display: flex;
@@ -312,17 +299,16 @@
     gap: 2px;
     cursor: pointer;
     text-decoration: none;
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
-    transition: all 0.15s ease;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
   }
   .tool-btn svg {
-    width: 19px;
-    height: 19px;
+    width: 18px;
+    height: 18px;
   }
   .tool-sub {
-    font-size: 8.5px;
+    font-size: 8px;
     font-weight: 800;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
     text-transform: uppercase;
     color: var(--text-secondary);
     line-height: 1;
@@ -331,10 +317,9 @@
     transform: scale(0.94);
   }
   .tool-btn.active {
-    background: rgba(59, 130, 246, 0.22);
-    border-color: rgba(96, 165, 250, 0.65);
+    background: #172554;
+    border-color: #3b82f6;
     color: var(--accent-bright);
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45), 0 0 14px rgba(59, 130, 246, 0.28);
   }
   .tool-btn.active .tool-sub {
     color: #ffffff;
@@ -342,23 +327,22 @@
 
   .recenter-pill {
     position: absolute;
-    left: 12px;
-    bottom: calc(max(14px, env(safe-area-inset-bottom)) + 114px);
+    left: max(10px, env(safe-area-inset-left));
+    bottom: calc(max(12px, env(safe-area-inset-bottom)) + 84px);
     z-index: 1000;
     display: none;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
     background: #2563eb;
     color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.28);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 999px;
-    padding: 11px 16px;
-    font-size: 13px;
+    padding: 10px 15px;
+    font-size: 12.5px;
     font-weight: 700;
-    letter-spacing: 0.01em;
     cursor: pointer;
-    box-shadow: 0 10px 28px rgba(37, 99, 235, 0.55);
-    transition: transform 0.15s ease;
+    box-shadow: 0 8px 22px rgba(37, 99, 235, 0.5);
+    transform: translateZ(0);
   }
   .recenter-pill.visible {
     display: inline-flex;
@@ -367,53 +351,51 @@
     transform: scale(0.95);
   }
   .recenter-pill svg {
-    width: 17px;
-    height: 17px;
+    width: 16px;
+    height: 16px;
   }
 
   .bottom-hud {
     position: absolute;
-    bottom: max(12px, env(safe-area-inset-bottom));
-    left: 12px;
-    right: 12px;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    left: max(10px, env(safe-area-inset-left));
+    right: max(10px, env(safe-area-inset-right));
     z-index: 1000;
-    background: var(--bg-glass-heavy);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+    background: var(--bg-panel-heavy);
     border: 1px solid var(--border-subtle);
-    border-radius: 18px;
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.65);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.65);
+    transform: translateZ(0);
   }
 
   .progress-track {
     width: 100%;
-    height: 3.5px;
+    height: 3px;
     background: rgba(255, 255, 255, 0.08);
   }
   .progress-fill {
     height: 100%;
     width: 0%;
     background: linear-gradient(90deg, #3b82f6, #10b981);
-    transition: width 0.35s ease;
   }
 
   .hud-main {
-    padding: 11px 15px;
+    padding: 10px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 8px;
   }
 
   .speed-cluster {
     display: flex;
     align-items: baseline;
-    gap: 4px;
-    min-width: 74px;
+    gap: 3px;
+    min-width: 68px;
   }
   .speed-val {
-    font-size: 32px;
+    font-size: 30px;
     font-weight: 800;
     letter-spacing: -0.04em;
     line-height: 1;
@@ -421,7 +403,7 @@
     font-variant-numeric: tabular-nums;
   }
   .speed-unit {
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
@@ -430,7 +412,7 @@
   .metrics-grid {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
     flex: 1;
     justify-content: center;
   }
@@ -438,23 +420,23 @@
     text-align: center;
   }
   .metric-val {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
     color: #f8fafc;
     letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
   }
   .metric-lbl {
-    font-size: 10px;
+    font-size: 9.5px;
     font-weight: 600;
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-top: 2px;
+    letter-spacing: 0.04em;
+    margin-top: 1px;
   }
   .metric-sep {
     width: 1px;
-    height: 24px;
+    height: 22px;
     background: var(--border-subtle);
   }
 
@@ -462,17 +444,17 @@
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 4px;
+    gap: 3px;
   }
   .gps-badge {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    font-size: 10px;
+    font-size: 9.5px;
     font-weight: 700;
     letter-spacing: 0.04em;
-    padding: 4px 8px;
-    border-radius: 7px;
+    padding: 3.5px 7px;
+    border-radius: 6px;
     background: rgba(255, 255, 255, 0.06);
     color: var(--text-secondary);
   }
@@ -483,23 +465,22 @@
     background: var(--amber);
   }
   .gps-badge.locked {
-    background: rgba(16, 185, 129, 0.15);
+    background: rgba(16, 185, 129, 0.16);
     color: #34d399;
   }
   .gps-badge.locked .gps-dot {
     background: #10b981;
-    box-shadow: 0 0 8px #10b981;
   }
   .wake-lbl {
-    font-size: 9px;
+    font-size: 8.5px;
     font-weight: 600;
     color: var(--text-muted);
     letter-spacing: 0.03em;
   }
 
   .nav-puck-wrap {
-    width: 92px;
-    height: 92px;
+    width: 86px;
+    height: 86px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -507,29 +488,127 @@
     will-change: transform;
   }
   .nav-puck-svg {
-    width: 92px;
-    height: 92px;
+    width: 86px;
+    height: 86px;
     overflow: visible;
-    filter: drop-shadow(0 5px 12px rgba(0, 0, 0, 0.65));
   }
 
-  .turn-target-dot {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: #ffffff;
-    border: 4px solid #3b82f6;
-    box-shadow: 0 0 14px rgba(59, 130, 246, 0.9);
-    pointer-events: none;
-  }
+  /* HORIZONTAL / LANDSCAPE COCKPIT LAYOUT (CarPlay / Waze Style) */
+  @media (orientation: landscape) and (max-height: 560px) {
+    .top-stack {
+      top: max(8px, env(safe-area-inset-top));
+      left: max(10px, env(safe-area-inset-left));
+      right: auto;
+      width: 300px;
+      gap: 6px;
+    }
 
-  .endpoint-pin {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    border: 2.5px solid #ffffff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-    pointer-events: none;
+    .selector-bar {
+      flex-wrap: wrap;
+      padding: 4px;
+      gap: 4px;
+    }
+    .dir-group {
+      width: 100%;
+    }
+    .dir-btn {
+      flex: 1;
+      text-align: center;
+      padding: 4px 6px;
+      font-size: 10.5px;
+    }
+    .bar-divider {
+      display: none;
+    }
+    .route-group {
+      width: 100%;
+    }
+    .route-pill {
+      padding: 5px 4px;
+      font-size: 10px;
+    }
+
+    .maneuver-card {
+      padding: 9px 11px;
+      gap: 10px;
+      border-radius: 14px;
+    }
+    .turn-icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 11px;
+    }
+    .turn-icon-box svg {
+      width: 24px;
+      height: 24px;
+    }
+    .turn-dist {
+      font-size: 21px;
+    }
+    .turn-street {
+      font-size: 13px;
+    }
+    .turn-meta {
+      font-size: 10px;
+    }
+
+    .bottom-hud {
+      left: max(10px, env(safe-area-inset-left));
+      right: auto;
+      bottom: max(8px, env(safe-area-inset-bottom));
+      width: 300px;
+      border-radius: 14px;
+    }
+    .hud-main {
+      padding: 8px 11px;
+      gap: 6px;
+    }
+    .speed-cluster {
+      min-width: 54px;
+    }
+    .speed-val {
+      font-size: 24px;
+    }
+    .speed-unit {
+      font-size: 9.5px;
+    }
+    .metrics-grid {
+      gap: 8px;
+    }
+    .metric-val {
+      font-size: 13px;
+    }
+    .metric-lbl {
+      font-size: 8.5px;
+    }
+    .metric-sep {
+      height: 18px;
+    }
+    .wake-lbl {
+      display: none;
+    }
+
+    .recenter-pill {
+      left: max(10px, env(safe-area-inset-left));
+      bottom: calc(max(8px, env(safe-area-inset-bottom)) + 64px);
+      padding: 8px 13px;
+      font-size: 11.5px;
+    }
+
+    .map-tools {
+      right: max(10px, env(safe-area-inset-right));
+      top: 50%;
+      bottom: auto;
+      transform: translateY(-50%) translateZ(0);
+      display: grid;
+      grid-template-columns: repeat(2, 44px);
+      gap: 6px;
+    }
+    .tool-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+    }
   }
 </style>
 </head>
@@ -545,8 +624,8 @@
     </div>
     <div class="bar-divider"></div>
     <div class="route-group">
-      <button class="route-pill active" id="rt-r1" onclick="setRoute('r1')">1. Het Lint (39,6)</button>
-      <button class="route-pill" id="rt-r2" onclick="setRoute('r2')">2. Kortst (39,5)</button>
+      <button class="route-pill active" id="rt-r1" onclick="setRoute('r1')">1. Lint (39,6)</button>
+      <button class="route-pill" id="rt-r2" onclick="setRoute('r2')">2. Kort (39,5)</button>
       <button class="route-pill" id="rt-r3" onclick="setRoute('r3')">3. Polder (41,8)</button>
     </div>
   </div>
@@ -624,6 +703,15 @@
     <span class="tool-sub" id="lbl-theme">DAGKAART</span>
   </button>
 
+  <a class="tool-btn" id="btn-gpx" href="gpx/r1_heen.gpx" download="r1_heen.gpx" title="Download GPX-bestand (voor OsmAnd / Komoot)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+    <span class="tool-sub">GPX</span>
+  </a>
+
   <a class="tool-btn" id="btn-gmaps" href="#" target="_blank" rel="noopener" title="Open in Google Maps">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
       <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z"/>
@@ -675,7 +763,48 @@ const ROUTE_META = {
   r3: { short: "ROUTE 3", lights: "2 stoplichten", mins: 46, color: "#f59e0b", core: "#fbbf24" }
 };
 
-const UNIFIED_MAP_STYLE = {"version":8,"glyphs":"https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf","sprite":"https://tiles.openfreemap.org/sprites/ofm_f384/ofm","sources":{"ne2_shaded":{"maxzoom":6,"tileSize":256,"tiles":["https://tiles.openfreemap.org/natural_earth/ne2sr/{z}/{x}/{y}.png"],"type":"raster"},"openmaptiles":{"type":"vector","url":"https://tiles.openfreemap.org/planet"},"alt-routes":{"type":"geojson","data":{"type":"FeatureCollection","features":[]}},"route-traveled":{"type":"geojson","data":{"type":"Feature","geometry":{"type":"LineString","coordinates":[]}}},"route-ahead":{"type":"geojson","data":{"type":"Feature","geometry":{"type":"LineString","coordinates":[]}}}},"layers":[{"id":"dark-background","type":"background","paint":{"background-color":"#0b0e14"},"layout":{"visibility":"visible"}},{"id":"dark-water","type":"fill","source":"openmaptiles","source-layer":"water","filter":["all",["match",["geometry-type"],["MultiPolygon","Polygon"],true,false],["!=",["get","brunnel"],"tunnel"]],"paint":{"fill-antialias":false,"fill-color":"#0f213c"},"layout":{"visibility":"visible"}},{"id":"dark-landcover_ice_shelf","type":"fill","source":"openmaptiles","source-layer":"landcover","maxzoom":8,"filter":["all",["match",["geometry-type"],["MultiPolygon","Polygon"],true,false],["==",["get","subclass"],"ice_shelf"]],"paint":{"fill-color":"rgb(12,12,12)","fill-opacity":0.7},"layout":{"visibility":"visible"}},{"id":"dark-landcover_glacier","type":"fill","source":"openmaptiles","source-layer":"landcover","maxzoom":8,"filter":["all",["match",["geometry-type"],["MultiPolygon","Polygon"],true,false],["==",["get","subclass"],"glacier"]],"paint":{"fill-color":"hsl(0,1%,2%)","fill-opacity":["interpolate",["linear"],["zoom"],0,1,8,0.5]},"layout":{"visibility":"visible"}},{"id":"dark-landuse_residential","type":"fill","source":"openmaptiles","source-layer":"landuse","maxzoom":9,"filter":["all",["match",["geometry-type"],["MultiPolygon","Polygon"],true,false],["==",["get","class"],"residential"]],"paint":{"fill-color":"#0e131b","fill-opacity":0.4},"layout":{"visibility":"visible"}},{"id":"dark-landcover_wood","type":"fill","source":"openmaptiles","source-layer":"landcover","minzoom":10,"filter":["all",["match",["geometry-type"],["MultiPolygon","Polygon"],true,false],["==",["get","class"],"wood"]],"paint":{"fill-color":"#101e19","fill-opacity":["interpolate",["exponential",0.3],["zoom"],8,0,10,0.8,13,0.4],"fill-pattern":"wood-pattern","fill-translate":[0,0]},"layout":{"visibility":"visible"}},{"id":"dark-landuse_park","type":"fill","source":"openmaptiles","source-layer":"landuse","filter":["all",["match",["geometry-type"],["MultiPolygon","Polygon"],true,false],["==",["get","class"],"park"]],"paint":{"fill-color":"#101e19"},"layout":{"visibility":"visible"}},{"id":"dark-waterway","type":"line","source":"openmaptiles","source-layer":"waterway","filter":["match",["geometry-type"],["LineString","MultiLineString"],true,false],"paint":{"line-color":"#0f213c"},"layout":{"visibility":"visible"}},{"id":"dark-building","type":"fill","source":"openmaptiles","source-layer":"building","minzoom":12,"filter":["match",["geometry-type"],["MultiPolygon","Polygon"],true,false],"paint":{"fill-antialias":true,"fill-color":"#131924","fill-outline-color":"#1c2536"},"layout":{"visibility":"visible"}},{"id":"dark-aeroway-taxiway","type":"line","source":"openmaptiles","source-layer":"aeroway","minzoom":12,"filter":["match",["get","class"],["taxiway"],true,false],"layout":{"line-cap":"round","line-join":"round","visibility":"visible"},"paint":{"line-color":"#181818","line-opacity":1,"line-width":["interpolate",["exponential",1.55],["zoom"],13,1.8,20,20]}},{"id":"dark-aeroway-runway-casing","type":"line","source":"openmaptiles","source-layer":"aeroway","minzoom":11,"filter":["match",["get","class"],["runway"],true,false],"layout":{"line-cap":"round","line-join":"round","visibility":"visible"},"paint":{"line-color":"rgba(60,60,60,0.8)","line-opacity":1,"line-width":["interpolate",["exponential",1.5],["zoom"],11,5,17,55]}},{"id":"dark-aeroway-area","type":"fill","source":"openmaptiles","source-layer":"aeroway","minzoom":4,"filter":["all",["match",["geometry-type"],["MultiPolygon","Polygon"],true,false],["match",["get","class"],["runway","taxiway"],true,false]],"paint":{"fill-color":"#000","fill-opacity":1},"layout":{"visibility":"visible"}},{"id":"dark-aeroway-runway","type":"line","source":"openmaptiles","source-layer":"aeroway","minzoom":11,"filter":["all",["match",["get","class"],["runway"],true,false],["match",["geometry-type"],["LineString","MultiLineString"],true,false]],"layout":{"line-cap":"round","line-join":"round","visibility":"visible"},"paint":{"line-color":"#000","line-opacity":1,"line-width":["interpolate",["exponential",1.5],["zoom"],11,4,17,50]}},{"id":"dark-road_area_pier","type":"fill","source":"openmaptiles","source-layer":"transportation","filter":["all",["match",["geometry-type"],["MultiPolygon","Polygon"],true,false],["==",["get","class"],"pier"]],"paint":{"fill-antialias":true,"fill-color":"rgb(12,12,12)"},"layout":{"visibility":"visible"}},{"id":"dark-road_pier","type":"line","source":"openmaptiles","source-layer":"transportation","filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["match",["get","class"],["pier"],true,false]],"layout":{"line-cap":"round","line-join":"round","visibility":"visible"},"paint":{"line-color":"rgb(12,12,12)","line-width":["interpolate",["exponential",1.2],["zoom"],15,1,17,4]}},{"id":"dark-highway_path","type":"line","source":"openmaptiles","source-layer":"transportation","filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["==",["get","class"],"path"]],"layout":{"line-cap":"round","line-join":"round","visibility":"visible"},"paint":{"line-color":"#263246","line-dasharray":[1.5,1.5],"line-opacity":0.85,"line-width":["interpolate",["exponential",1.2],["zoom"],13,1,20,10]}},{"id":"dark-highway_minor","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":8,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["match",["get","class"],["minor","service","track"],true,false]],"layout":{"line-cap":"round","line-join":"round","visibility":"visible"},"paint":{"line-color":"#283449","line-opacity":0.95,"line-width":["interpolate",["exponential",1.55],["zoom"],13,1.8,20,20]}},{"id":"dark-highway_major_casing","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":11,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["match",["get","class"],["primary","secondary","tertiary","trunk"],true,false]],"layout":{"line-cap":"butt","line-join":"miter","visibility":"visible"},"paint":{"line-color":"#3b4c68","line-dasharray":[12,0],"line-width":["interpolate",["exponential",1.3],["zoom"],10,3,20,23]}},{"id":"dark-highway_major_inner","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":11,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["match",["get","class"],["primary","secondary","tertiary","trunk"],true,false]],"layout":{"line-cap":"round","line-join":"round","visibility":"visible"},"paint":{"line-color":"#1e293b","line-width":["interpolate",["exponential",1.3],["zoom"],10,2,20,20]}},{"id":"dark-highway_major_subtle","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":6,"maxzoom":11,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["match",["get","class"],["primary","secondary","tertiary","trunk"],true,false]],"layout":{"line-cap":"round","line-join":"round","visibility":"visible"},"paint":{"line-color":"#293548","line-width":["interpolate",["linear"],["zoom"],6,0,8,2]}},{"id":"dark-highway_motorway_casing","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":6,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["==",["get","class"],"motorway"]],"layout":{"line-cap":"butt","line-join":"miter","visibility":"visible"},"paint":{"line-color":"#475569","line-dasharray":[2,0],"line-opacity":1,"line-width":["interpolate",["exponential",1.4],["zoom"],5.8,0,6,3,20,40]}},{"id":"dark-highway_motorway_inner","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":6,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["==",["get","class"],"motorway"]],"layout":{"line-cap":"round","line-join":"round","visibility":"visible"},"paint":{"line-color":"#334155","line-width":["interpolate",["exponential",1.4],["zoom"],4,2,6,1.3,20,30]}},{"id":"dark-highway_motorway_subtle","type":"line","source":"openmaptiles","source-layer":"transportation","maxzoom":6,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["==",["get","class"],"motorway"]],"layout":{"line-cap":"round","line-join":"round","visibility":"visible"},"paint":{"line-color":"#253042","line-width":["interpolate",["exponential",1.4],["zoom"],4,2,6,1.3]}},{"id":"dark-railway_transit","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":16,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["all",["==",["get","class"],"transit"],["match",["get","brunnel"],["tunnel"],false,true]]],"layout":{"line-join":"round","visibility":"visible"},"paint":{"line-color":"rgb(35,35,35)","line-width":3}},{"id":"dark-railway_transit_dashline","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":16,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["all",["==",["get","class"],"transit"],["match",["get","brunnel"],["tunnel"],false,true]]],"layout":{"line-join":"round","visibility":"visible"},"paint":{"line-color":"rgb(12,12,12)","line-dasharray":[3,3],"line-width":2}},{"id":"dark-railway_minor","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":16,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["all",["==",["get","class"],"rail"],["has","service"]]],"layout":{"line-join":"round","visibility":"visible"},"paint":{"line-color":"rgb(35,35,35)","line-width":3}},{"id":"dark-railway_minor_dashline","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":16,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["all",["==",["get","class"],"rail"],["has","service"]]],"layout":{"line-join":"round","visibility":"visible"},"paint":{"line-color":"rgb(12,12,12)","line-dasharray":[3,3],"line-width":2}},{"id":"dark-railway","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":13,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["==",["get","class"],"rail"],["!",["has","service"]]],"layout":{"line-join":"round","visibility":"visible"},"paint":{"line-color":"rgb(35,35,35)","line-width":["interpolate",["exponential",1.3],["zoom"],16,3,20,7]}},{"id":"dark-railway_dashline","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":13,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["==",["get","class"],"rail"],["!",["has","service"]]],"layout":{"line-join":"round","visibility":"visible"},"paint":{"line-color":"rgb(12,12,12)","line-dasharray":[3,3],"line-width":["interpolate",["exponential",1.3],["zoom"],16,2,20,6]}},{"id":"dark-boundary_state","type":"line","source":"openmaptiles","source-layer":"boundary","filter":["==",["get","admin_level"],4],"layout":{"line-cap":"round","line-join":"round","visibility":"visible"},"paint":{"line-blur":0.4,"line-color":"hsl(0,0%,21%)","line-dasharray":[2,2],"line-opacity":1,"line-width":["interpolate",["exponential",1.3],["zoom"],3,1,22,15]}},{"id":"dark-boundary_country_z0-4","type":"line","source":"openmaptiles","source-layer":"boundary","maxzoom":5,"filter":["all",["==",["get","admin_level"],2],["!",["has","claimed_by"]]],"layout":{"line-cap":"round","line-join":"round","visibility":"visible"},"paint":{"line-blur":["interpolate",["linear"],["zoom"],0,0.4,22,4],"line-color":"hsl(0,0%,23%)","line-opacity":1,"line-width":["interpolate",["exponential",1.1],["zoom"],3,1,22,20]}},{"id":"dark-boundary_country_z5-","type":"line","source":"openmaptiles","source-layer":"boundary","minzoom":5,"filter":["==",["get","admin_level"],2],"layout":{"line-cap":"round","line-join":"round","visibility":"visible"},"paint":{"line-blur":["interpolate",["linear"],["zoom"],0,0.4,22,4],"line-color":"hsl(0,0%,23%)","line-opacity":1,"line-width":["interpolate",["exponential",1.1],["zoom"],3,1,22,20]}},{"id":"light-background","type":"background","paint":{"background-color":"rgb(242,243,240)"},"layout":{"visibility":"none"}},{"id":"light-park","type":"fill","source":"openmaptiles","source-layer":"park","filter":["match",["geometry-type"],["MultiPolygon","Polygon"],true,false],"paint":{"fill-color":"rgb(230, 233, 229)"},"layout":{"visibility":"none"}},{"id":"light-water","type":"fill","source":"openmaptiles","source-layer":"water","filter":["all",["match",["geometry-type"],["MultiPolygon","Polygon"],true,false],["!=",["get","brunnel"],"tunnel"]],"paint":{"fill-antialias":true,"fill-color":"rgb(194, 200, 202)"},"layout":{"visibility":"none"}},{"id":"light-landcover_ice_shelf","type":"fill","source":"openmaptiles","source-layer":"landcover","maxzoom":8,"filter":["all",["match",["geometry-type"],["MultiPolygon","Polygon"],true,false],["==",["get","subclass"],"ice_shelf"]],"paint":{"fill-color":"hsl(0,0%,98%)","fill-opacity":0.7},"layout":{"visibility":"none"}},{"id":"light-landcover_glacier","type":"fill","source":"openmaptiles","source-layer":"landcover","maxzoom":8,"filter":["all",["match",["geometry-type"],["MultiPolygon","Polygon"],true,false],["==",["get","subclass"],"glacier"]],"paint":{"fill-color":"hsl(0,0%,98%)","fill-opacity":["interpolate",["linear"],["zoom"],0,1,8,0.5]},"layout":{"visibility":"none"}},{"id":"light-landuse_residential","type":"fill","source":"openmaptiles","source-layer":"landuse","maxzoom":16,"filter":["all",["match",["geometry-type"],["MultiPolygon","Polygon"],true,false],["==",["get","class"],"residential"]],"paint":{"fill-color":"rgb(234, 234, 230)","fill-opacity":["interpolate",["exponential",0.6],["zoom"],8,0.8,9,0.6]},"layout":{"visibility":"none"}},{"id":"light-landcover_wood","type":"fill","source":"openmaptiles","source-layer":"landcover","minzoom":10,"filter":["all",["match",["geometry-type"],["MultiPolygon","Polygon"],true,false],["==",["get","class"],"wood"]],"paint":{"fill-color":"rgb(220,224,220)","fill-opacity":["interpolate",["linear"],["zoom"],8,0,12,1]},"layout":{"visibility":"none"}},{"id":"light-waterway","type":"line","source":"openmaptiles","source-layer":"waterway","filter":["match",["geometry-type"],["LineString","MultiLineString"],true,false],"paint":{"line-color":"hsl(195,17%,78%)"},"layout":{"visibility":"none"}},{"id":"light-building","type":"fill","source":"openmaptiles","source-layer":"building","minzoom":12,"paint":{"fill-antialias":true,"fill-color":"rgb(234, 234, 229)","fill-outline-color":"rgb(219, 219, 218)"},"layout":{"visibility":"none"}},{"id":"light-tunnel_motorway_casing","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":6,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["all",["==",["get","brunnel"],"tunnel"],["==",["get","class"],"motorway"]]],"layout":{"line-cap":"butt","line-join":"miter","visibility":"none"},"paint":{"line-color":"rgb(213, 213, 213)","line-opacity":1,"line-width":["interpolate",["exponential",1.4],["zoom"],5.8,0,6,3,20,40]}},{"id":"light-tunnel_motorway_inner","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":6,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["all",["==",["get","brunnel"],"tunnel"],["==",["get","class"],"motorway"]]],"layout":{"line-cap":"round","line-join":"round","visibility":"none"},"paint":{"line-color":"rgb(234,234,234)","line-width":["interpolate",["exponential",1.4],["zoom"],4,2,6,1.3,20,30]}},{"id":"light-aeroway-taxiway","type":"line","source":"openmaptiles","source-layer":"aeroway","minzoom":12,"filter":["match",["get","class"],["taxiway"],true,false],"layout":{"line-cap":"round","line-join":"round","visibility":"none"},"paint":{"line-color":"hsl(0,0%,88%)","line-opacity":1,"line-width":["interpolate",["exponential",1.55],["zoom"],13,1.8,20,20]}},{"id":"light-aeroway-runway-casing","type":"line","source":"openmaptiles","source-layer":"aeroway","minzoom":11,"filter":["match",["get","class"],["runway"],true,false],"layout":{"line-cap":"round","line-join":"round","visibility":"none"},"paint":{"line-color":"hsl(0,0%,88%)","line-opacity":1,"line-width":["interpolate",["exponential",1.5],["zoom"],11,6,17,55]}},{"id":"light-aeroway-area","type":"fill","source":"openmaptiles","source-layer":"aeroway","minzoom":4,"filter":["all",["match",["geometry-type"],["MultiPolygon","Polygon"],true,false],["match",["get","class"],["runway","taxiway"],true,false]],"paint":{"fill-color":"rgba(255, 255, 255, 1)","fill-opacity":["interpolate",["linear"],["zoom"],13,0,14,1]},"layout":{"visibility":"none"}},{"id":"light-aeroway-runway","type":"line","source":"openmaptiles","source-layer":"aeroway","minzoom":11,"filter":["all",["match",["get","class"],["runway"],true,false],["match",["geometry-type"],["LineString","MultiLineString"],true,false]],"layout":{"line-cap":"round","line-join":"round","visibility":"none"},"paint":{"line-color":"rgba(255, 255, 255, 1)","line-opacity":1,"line-width":["interpolate",["exponential",1.5],["zoom"],11,4,17,50]}},{"id":"light-road_area_pier","type":"fill","source":"openmaptiles","source-layer":"transportation","filter":["all",["match",["geometry-type"],["MultiPolygon","Polygon"],true,false],["==",["get","class"],"pier"]],"paint":{"fill-antialias":true,"fill-color":"rgb(242,243,240)"},"layout":{"visibility":"none"}},{"id":"light-road_pier","type":"line","source":"openmaptiles","source-layer":"transportation","filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["match",["get","class"],["pier"],true,false]],"layout":{"line-cap":"round","line-join":"round","visibility":"none"},"paint":{"line-color":"rgb(242,243,240)","line-width":["interpolate",["exponential",1.2],["zoom"],15,1,17,4]}},{"id":"light-highway_path","type":"line","source":"openmaptiles","source-layer":"transportation","filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["==",["get","class"],"path"]],"layout":{"line-cap":"round","line-join":"round","visibility":"none"},"paint":{"line-color":"rgb(234, 234, 234)","line-opacity":0.9,"line-width":["interpolate",["exponential",1.2],["zoom"],13,1,20,10]}},{"id":"light-highway_minor","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":8,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["match",["get","class"],["minor","service","track"],true,false]],"layout":{"line-cap":"round","line-join":"round","visibility":"none"},"paint":{"line-color":"hsl(0,0%,88%)","line-opacity":0.9,"line-width":["interpolate",["exponential",1.55],["zoom"],13,1.8,20,20]}},{"id":"light-highway_major_casing","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":11,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["match",["get","class"],["primary","secondary","tertiary","trunk"],true,false]],"layout":{"line-cap":"butt","line-join":"miter","visibility":"none"},"paint":{"line-color":"rgb(213, 213, 213)","line-dasharray":[12,0],"line-width":["interpolate",["exponential",1.3],["zoom"],10,3,20,23]}},{"id":"light-highway_major_inner","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":11,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["match",["get","class"],["primary","secondary","tertiary","trunk"],true,false]],"layout":{"line-cap":"round","line-join":"round","visibility":"none"},"paint":{"line-color":"#fff","line-width":["interpolate",["exponential",1.3],["zoom"],10,2,20,20]}},{"id":"light-highway_major_subtle","type":"line","source":"openmaptiles","source-layer":"transportation","maxzoom":11,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["match",["get","class"],["primary","secondary","tertiary","trunk"],true,false]],"layout":{"line-cap":"round","line-join":"round","visibility":"none"},"paint":{"line-color":"hsla(0,0%,85%,0.69)","line-width":2}},{"id":"light-highway_motorway_casing","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":6,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["all",["match",["get","brunnel"],["bridge","tunnel"],false,true],["==",["get","class"],"motorway"]]],"layout":{"line-cap":"butt","line-join":"miter","visibility":"none"},"paint":{"line-color":"rgb(213, 213, 213)","line-dasharray":[2,0],"line-opacity":1,"line-width":["interpolate",["exponential",1.4],["zoom"],5.8,0,6,3,20,40]}},{"id":"light-highway_motorway_inner","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":6,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["all",["match",["get","brunnel"],["bridge","tunnel"],false,true],["==",["get","class"],"motorway"]]],"layout":{"line-cap":"round","line-join":"round","visibility":"none"},"paint":{"line-color":["interpolate",["linear"],["zoom"],5.8,"hsla(0,0%,85%,0.53)",6,"#fff"],"line-width":["interpolate",["exponential",1.4],["zoom"],4,2,6,1.3,20,30]}},{"id":"light-highway_motorway_subtle","type":"line","source":"openmaptiles","source-layer":"transportation","maxzoom":6,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["==",["get","class"],"motorway"]],"layout":{"line-cap":"round","line-join":"round","visibility":"none"},"paint":{"line-color":"hsla(0,0%,85%,0.53)","line-width":["interpolate",["exponential",1.4],["zoom"],4,2,6,1.3]}},{"id":"light-railway_transit","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":16,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["all",["==",["get","class"],"transit"],["match",["get","brunnel"],["tunnel"],false,true]]],"layout":{"line-join":"round","visibility":"none"},"paint":{"line-color":"#dddddd","line-width":3}},{"id":"light-railway_transit_dashline","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":16,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["all",["==",["get","class"],"transit"],["match",["get","brunnel"],["tunnel"],false,true]]],"layout":{"line-join":"round","visibility":"none"},"paint":{"line-color":"#fafafa","line-dasharray":[3,3],"line-width":2}},{"id":"light-railway_service","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":16,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["all",["==",["get","class"],"rail"],["has","service"]]],"layout":{"line-join":"round","visibility":"none"},"paint":{"line-color":"#dddddd","line-width":3}},{"id":"light-railway_service_dashline","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":16,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["==",["get","class"],"rail"],["has","service"]],"layout":{"line-join":"round","visibility":"none"},"paint":{"line-color":"#fafafa","line-dasharray":[3,3],"line-width":2}},{"id":"light-railway","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":13,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["all",["!",["has","service"]],["==",["get","class"],"rail"]]],"layout":{"line-join":"round","visibility":"none"},"paint":{"line-color":"#dddddd","line-width":["interpolate",["exponential",1.3],["zoom"],16,3,20,7]}},{"id":"light-railway_dashline","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":13,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["all",["!",["has","service"]],["==",["get","class"],"rail"]]],"layout":{"line-join":"round","visibility":"none"},"paint":{"line-color":"#fafafa","line-dasharray":[3,3],"line-width":["interpolate",["exponential",1.3],["zoom"],16,2,20,6]}},{"id":"light-highway_motorway_bridge_casing","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":6,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["all",["==",["get","brunnel"],"bridge"],["==",["get","class"],"motorway"]]],"layout":{"line-cap":"butt","line-join":"miter","visibility":"none"},"paint":{"line-color":"rgb(213, 213, 213)","line-dasharray":[2,0],"line-opacity":1,"line-width":["interpolate",["exponential",1.4],["zoom"],5.8,0,6,5,20,45]}},{"id":"light-highway_motorway_bridge_inner","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":6,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["all",["==",["get","brunnel"],"bridge"],["==",["get","class"],"motorway"]]],"layout":{"line-cap":"round","line-join":"round","visibility":"none"},"paint":{"line-color":["interpolate",["linear"],["zoom"],5.8,"hsla(0,0%,85%,0.53)",6,"#fff"],"line-width":["interpolate",["exponential",1.4],["zoom"],4,2,6,1.3,20,30]}},{"id":"light-boundary_3","type":"line","source":"openmaptiles","source-layer":"boundary","minzoom":8,"filter":["all",["==",["typeof",["get","admin_level"]],"number"],[">=",["get","admin_level"],3],["<=",["get","admin_level"],6],["!=",["get","maritime"],1],["!=",["get","disputed"],1],["!",["has","claimed_by"]]],"paint":{"line-color":"hsl(0,0%,70%)","line-dasharray":[1,1],"line-width":["interpolate",["linear",1],["zoom"],7,1,11,2]},"layout":{"visibility":"none"}},{"id":"light-boundary_2","type":"line","source":"openmaptiles","source-layer":"boundary","filter":["all",["==",["get","admin_level"],2],["!=",["get","maritime"],1],["!=",["get","disputed"],1],["!",["has","claimed_by"]]],"layout":{"line-cap":"round","line-join":"round","visibility":"none"},"paint":{"line-color":"hsl(0,0%,70%)","line-opacity":["interpolate",["linear"],["zoom"],0,0.4,4,1],"line-width":["interpolate",["linear"],["zoom"],3,1,5,1.2,12,3]}},{"id":"light-boundary_disputed","type":"line","source":"openmaptiles","source-layer":"boundary","filter":["all",["!=",["get","maritime"],1],["==",["get","disputed"],1]],"paint":{"line-color":"hsl(0,0%,70%)","line-dasharray":[1,2],"line-width":["interpolate",["linear"],["zoom"],3,1,5,1.2,12,3]},"layout":{"visibility":"none"}},{"id":"alt-routes-line","type":"line","source":"alt-routes","layout":{"line-join":"round","line-cap":"round"},"paint":{"line-color":"#94a3b8","line-width":4,"line-opacity":0.3,"line-dasharray":[2,2]}},{"id":"route-traveled-line","type":"line","source":"route-traveled","layout":{"line-join":"round","line-cap":"round"},"paint":{"line-color":"#64748b","line-width":6,"line-opacity":0.55}},{"id":"route-ahead-glow","type":"line","source":"route-ahead","layout":{"line-join":"round","line-cap":"round"},"paint":{"line-color":"#3b82f6","line-width":16,"line-opacity":0.32,"line-blur":4}},{"id":"route-ahead-casing","type":"line","source":"route-ahead","layout":{"line-join":"round","line-cap":"round"},"paint":{"line-color":"#1d4ed8","line-width":9,"line-opacity":0.96}},{"id":"route-ahead-core","type":"line","source":"route-ahead","layout":{"line-join":"round","line-cap":"round"},"paint":{"line-color":"#60a5fa","line-width":5.5,"line-opacity":1.0}},{"id":"dark-water_name","type":"symbol","source":"openmaptiles","source-layer":"water_name","filter":["match",["geometry-type"],["LineString","MultiLineString"],true,false],"layout":{"symbol-placement":"line","symbol-spacing":500,"text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Regular"],"text-rotation-alignment":"map","text-size":12,"visibility":"visible"},"paint":{"text-color":"hsla(0,0%,0%,0.7)","text-halo-color":"hsl(0,0%,27%)"}},{"id":"dark-road_oneway","type":"symbol","source":"openmaptiles","source-layer":"transportation","minzoom":15,"filter":["==",["get","oneway"],1],"layout":{"icon-image":"oneway","icon-padding":2,"icon-rotate":90,"icon-rotation-alignment":"map","icon-size":["interpolate",["linear"],["zoom"],15,0.5,19,1],"symbol-placement":"line","symbol-spacing":200,"visibility":"visible"},"paint":{"icon-opacity":0.5}},{"id":"dark-road_oneway_opposite","type":"symbol","source":"openmaptiles","source-layer":"transportation","minzoom":15,"filter":["==",["get","oneway"],-1],"layout":{"icon-image":"oneway","icon-padding":2,"icon-rotate":-90,"icon-rotation-alignment":"map","icon-size":["interpolate",["linear"],["zoom"],15,0.5,19,1],"symbol-placement":"line","symbol-spacing":200,"visibility":"visible"},"paint":{"icon-opacity":0.5}},{"id":"dark-highway_name_other","type":"symbol","source":"openmaptiles","source-layer":"transportation_name","filter":["all",["!=",["get","class"],"motorway"],["match",["geometry-type"],["LineString","MultiLineString"],true,false]],"layout":{"symbol-placement":"line","symbol-spacing":350,"text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"]," ",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Regular"],"text-max-angle":30,"text-pitch-alignment":"viewport","text-rotation-alignment":"map","text-size":10,"text-transform":"uppercase","visibility":"visible"},"paint":{"text-color":"#cbd5e1","text-halo-blur":0,"text-halo-color":"rgba(11, 14, 20, 0.92)","text-halo-width":1.6,"text-translate":[0,0]}},{"id":"dark-highway_name_motorway","type":"symbol","source":"openmaptiles","source-layer":"transportation_name","filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["==",["get","class"],"motorway"]],"layout":{"symbol-placement":"line","symbol-spacing":350,"text-field":["to-string",["get","ref"]],"text-font":["Noto Sans Regular"],"text-pitch-alignment":"viewport","text-rotation-alignment":"viewport","text-size":10,"visibility":"visible"},"paint":{"text-color":"#cbd5e1","text-translate":[0,2],"text-halo-color":"rgba(11, 14, 20, 0.92)","text-halo-width":1.6}},{"id":"dark-place_other","type":"symbol","source":"openmaptiles","source-layer":"place","maxzoom":14,"filter":["all",["match",["geometry-type"],["MultiPoint","Point"],true,false],["match",["get","class"],["hamlet","isolated_dwelling","neighbourhood"],true,false]],"layout":{"text-anchor":"center","text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Regular"],"text-justify":"center","text-offset":[0.5,0],"text-size":10,"text-transform":"uppercase","visibility":"visible"},"paint":{"text-color":"#94a3b8","text-halo-blur":1,"text-halo-color":"rgba(11, 14, 20, 0.9)","text-halo-width":1.4}},{"id":"dark-place_suburb","type":"symbol","source":"openmaptiles","source-layer":"place","maxzoom":15,"filter":["all",["match",["geometry-type"],["MultiPoint","Point"],true,false],["==",["get","class"],"suburb"]],"layout":{"text-anchor":"center","text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Regular"],"text-justify":"center","text-offset":[0.5,0],"text-size":10,"text-transform":"uppercase","visibility":"visible"},"paint":{"text-color":"#94a3b8","text-halo-blur":1,"text-halo-color":"rgba(11, 14, 20, 0.9)","text-halo-width":1.4}},{"id":"dark-place_village","type":"symbol","source":"openmaptiles","source-layer":"place","maxzoom":14,"filter":["all",["match",["geometry-type"],["MultiPoint","Point"],true,false],["==",["get","class"],"village"]],"layout":{"icon-size":0.4,"text-anchor":"left","text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Regular"],"text-justify":"left","text-offset":[0.5,0.2],"text-size":10,"text-transform":"uppercase","visibility":"visible"},"paint":{"icon-opacity":0.7,"text-color":"#94a3b8","text-halo-blur":1,"text-halo-color":"rgba(11, 14, 20, 0.9)","text-halo-width":1.4}},{"id":"dark-place_town","type":"symbol","source":"openmaptiles","source-layer":"place","maxzoom":15,"filter":["all",["match",["geometry-type"],["MultiPoint","Point"],true,false],["==",["get","class"],"town"]],"layout":{"icon-image":["step",["zoom"],"circle-11",9,""],"icon-size":0.4,"text-anchor":["step",["zoom"],"left",8,"center"],"text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Regular"],"text-justify":"left","text-offset":[0.5,0.2],"text-size":10,"text-transform":"uppercase","visibility":"visible"},"paint":{"icon-opacity":0.7,"text-color":"#94a3b8","text-halo-blur":1,"text-halo-color":"rgba(11, 14, 20, 0.9)","text-halo-width":1.4}},{"id":"dark-place_city","type":"symbol","source":"openmaptiles","source-layer":"place","maxzoom":14,"filter":["all",["match",["geometry-type"],["MultiPoint","Point"],true,false],["==",["get","class"],"city"],[">",["get","rank"],3]],"layout":{"icon-image":["step",["zoom"],"circle-11",9,""],"icon-size":0.4,"text-anchor":["step",["zoom"],"left",8,"center"],"text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Regular"],"text-justify":"left","text-offset":[0.5,0.2],"text-size":10,"text-transform":"uppercase","visibility":"visible"},"paint":{"icon-opacity":0.7,"text-color":"#94a3b8","text-halo-blur":1,"text-halo-color":"rgba(11, 14, 20, 0.9)","text-halo-width":1.4}},{"id":"dark-place_city_large","type":"symbol","source":"openmaptiles","source-layer":"place","maxzoom":12,"filter":["all",["match",["geometry-type"],["MultiPoint","Point"],true,false],["<=",["get","rank"],3],["==",["get","class"],"city"]],"layout":{"icon-image":["step",["zoom"],"circle-11",9,""],"icon-size":0.4,"text-anchor":["step",["zoom"],"left",8,"center"],"text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Regular"],"text-justify":"left","text-offset":[0.5,0.2],"text-size":14,"text-transform":"uppercase","visibility":"visible"},"paint":{"icon-opacity":0.7,"text-color":"#94a3b8","text-halo-blur":1,"text-halo-color":"rgba(11, 14, 20, 0.9)","text-halo-width":1.4}},{"id":"dark-place_state","type":"symbol","source":"openmaptiles","source-layer":"place","maxzoom":12,"filter":["all",["match",["geometry-type"],["MultiPoint","Point"],true,false],["==",["get","class"],"state"]],"layout":{"text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Regular"],"text-size":10,"text-transform":"uppercase","visibility":"visible"},"paint":{"text-color":"#94a3b8","text-halo-blur":1,"text-halo-color":"rgba(11, 14, 20, 0.9)","text-halo-width":1.4}},{"id":"dark-place_country_other","type":"symbol","source":"openmaptiles","source-layer":"place","maxzoom":8,"filter":["all",["match",["geometry-type"],["MultiPoint","Point"],true,false],["==",["get","class"],"country"],["!",["has","iso_a2"]]],"layout":{"text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Regular"],"text-size":["interpolate",["linear"],["zoom"],0,9,1,11],"text-transform":"uppercase","visibility":"visible"},"paint":{"text-color":"#94a3b8","text-halo-color":"rgba(11, 14, 20, 0.9)","text-halo-width":1.4}},{"id":"dark-place_country_minor","type":"symbol","source":"openmaptiles","source-layer":"place","maxzoom":8,"filter":["all",["match",["geometry-type"],["MultiPoint","Point"],true,false],["==",["get","class"],"country"],[">=",["get","rank"],2],["has","iso_a2"]],"layout":{"text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Regular"],"text-size":["interpolate",["linear"],["zoom"],0,10,6,12],"text-transform":"uppercase","visibility":"visible"},"paint":{"text-color":"#94a3b8","text-halo-color":"rgba(11, 14, 20, 0.9)","text-halo-width":1.4}},{"id":"dark-place_country_major","type":"symbol","source":"openmaptiles","source-layer":"place","maxzoom":6,"filter":["all",["match",["geometry-type"],["MultiPoint","Point"],true,false],["<=",["get","rank"],1],["==",["get","class"],"country"],["has","iso_a2"]],"layout":{"text-anchor":"center","text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Regular"],"text-size":["interpolate",["exponential",1.4],["zoom"],0,10,3,12,4,14],"text-transform":"uppercase","visibility":"visible"},"paint":{"text-color":"#94a3b8","text-halo-color":"rgba(11, 14, 20, 0.9)","text-halo-width":1.4}},{"id":"light-waterway_line_label","type":"symbol","source":"openmaptiles","source-layer":"waterway","minzoom":10,"filter":["match",["geometry-type"],["LineString","MultiLineString"],true,false],"layout":{"symbol-placement":"line","symbol-spacing":350,"text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"]," ",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Italic"],"text-letter-spacing":0.2,"text-max-width":5,"text-size":14,"visibility":"none"},"paint":{"text-color":"hsl(0,0%,66%)","text-halo-color":"rgba(255,255,255,0.7)","text-halo-width":1.5}},{"id":"light-water_name_point_label","type":"symbol","source":"openmaptiles","source-layer":"water_name","filter":["match",["geometry-type"],["MultiPoint","Point"],true,false],"layout":{"text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Italic"],"text-letter-spacing":0.2,"text-max-width":5,"text-size":["interpolate",["linear"],["zoom"],0,10,8,14],"visibility":"none"},"paint":{"text-color":"#495e91","text-halo-color":"rgba(255,255,255,0.7)","text-halo-width":1.5}},{"id":"light-water_name_line_label","type":"symbol","source":"openmaptiles","source-layer":"water_name","filter":["match",["geometry-type"],["LineString","MultiLineString"],true,false],"layout":{"symbol-placement":"line","symbol-spacing":350,"text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"]," ",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Italic"],"text-letter-spacing":0.2,"text-max-width":5,"text-size":14,"visibility":"none"},"paint":{"text-color":"#495e91","text-halo-color":"rgba(255,255,255,0.7)","text-halo-width":1.5}},{"id":"light-highway-name-path","type":"symbol","source":"openmaptiles","source-layer":"transportation_name","minzoom":15.5,"filter":["==",["get","class"],"path"],"layout":{"symbol-placement":"line","text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"]," ",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Regular"],"text-rotation-alignment":"map","text-size":["interpolate",["linear"],["zoom"],13,12,14,13],"visibility":"none"},"paint":{"text-color":"hsl(30,0%,62%)","text-halo-color":"#f8f4f0","text-halo-width":0.5}},{"id":"light-highway-name-minor","type":"symbol","source":"openmaptiles","source-layer":"transportation_name","minzoom":15,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["match",["get","class"],["minor","service","track"],true,false]],"layout":{"symbol-placement":"line","text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"]," ",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Regular"],"text-rotation-alignment":"map","text-size":["interpolate",["linear"],["zoom"],13,12,14,13],"visibility":"none"},"paint":{"text-color":"#666","text-halo-blur":0.5,"text-halo-width":1}},{"id":"light-highway-name-major","type":"symbol","source":"openmaptiles","source-layer":"transportation_name","minzoom":12.2,"filter":["match",["get","class"],["primary","secondary","tertiary","trunk"],true,false],"layout":{"symbol-placement":"line","text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"]," ",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Regular"],"text-rotation-alignment":"map","text-size":["interpolate",["linear"],["zoom"],13,12,14,13],"visibility":"none"},"paint":{"text-color":"#666","text-halo-blur":0.5,"text-halo-width":1}},{"id":"light-highway-shield-non-us","type":"symbol","source":"openmaptiles","source-layer":"transportation_name","minzoom":11,"filter":["all",["<=",["get","ref_length"],6],["match",["geometry-type"],["LineString","MultiLineString"],true,false],["match",["get","network"],["us-highway","us-interstate","us-state"],false,true]],"layout":{"icon-image":["concat","road_",["get","ref_length"]],"icon-rotation-alignment":"viewport","icon-size":1,"symbol-placement":["step",["zoom"],"point",11,"line"],"symbol-spacing":200,"text-field":["to-string",["get","ref"]],"text-font":["Noto Sans Regular"],"text-rotation-alignment":"viewport","text-size":10,"visibility":"none"}},{"id":"light-highway-shield-us-interstate","type":"symbol","source":"openmaptiles","source-layer":"transportation_name","minzoom":11,"filter":["all",["<=",["get","ref_length"],6],["match",["geometry-type"],["LineString","MultiLineString"],true,false],["match",["get","network"],["us-interstate"],true,false]],"layout":{"icon-image":["concat",["get","network"],"_",["get","ref_length"]],"icon-rotation-alignment":"viewport","icon-size":1,"symbol-placement":["step",["zoom"],"point",7,"line",8,"line"],"symbol-spacing":200,"text-field":["to-string",["get","ref"]],"text-font":["Noto Sans Regular"],"text-rotation-alignment":"viewport","text-size":10,"visibility":"none"}},{"id":"light-road_shield_us","type":"symbol","source":"openmaptiles","source-layer":"transportation_name","minzoom":12,"filter":["all",["<=",["get","ref_length"],6],["match",["geometry-type"],["LineString","MultiLineString"],true,false],["match",["get","network"],["us-highway","us-state"],true,false]],"layout":{"icon-image":["concat",["get","network"],"_",["get","ref_length"]],"icon-rotation-alignment":"viewport","icon-size":1,"symbol-placement":["step",["zoom"],"point",11,"line"],"symbol-spacing":200,"text-field":["to-string",["get","ref"]],"text-font":["Noto Sans Regular"],"text-rotation-alignment":"viewport","text-size":10,"visibility":"none"}},{"id":"light-airport","type":"symbol","source":"openmaptiles","source-layer":"aerodrome_label","minzoom":11,"filter":["all",["has","iata"]],"layout":{"icon-image":"airport_11","icon-size":1,"text-anchor":"top","text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Regular"],"text-max-width":9,"text-offset":[0,0.6],"text-optional":true,"text-padding":2,"text-size":12,"visibility":"none"},"paint":{"text-color":"#666","text-halo-blur":0.5,"text-halo-color":"#ffffff","text-halo-width":1}},{"id":"light-label_other","type":"symbol","source":"openmaptiles","source-layer":"place","minzoom":8,"filter":["match",["get","class"],["city","continent","country","state","town","village"],false,true],"layout":{"text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Italic"],"text-letter-spacing":0.1,"text-max-width":9,"text-size":["interpolate",["linear"],["zoom"],8,9,12,10],"text-transform":"uppercase","visibility":"none"},"paint":{"text-color":"#333","text-halo-blur":1,"text-halo-color":"#fff","text-halo-width":1}},{"id":"light-label_village","type":"symbol","source":"openmaptiles","source-layer":"place","minzoom":9,"filter":["==",["get","class"],"village"],"layout":{"icon-allow-overlap":true,"icon-image":["step",["zoom"],"circle_11_black",10,""],"icon-optional":false,"icon-size":0.2,"text-anchor":"bottom","text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Regular"],"text-max-width":8,"text-size":["interpolate",["exponential",1.2],["zoom"],7,10,11,12],"visibility":"none"},"paint":{"text-color":"#000","text-halo-blur":1,"text-halo-color":"#fff","text-halo-width":1}},{"id":"light-label_town","type":"symbol","source":"openmaptiles","source-layer":"place","minzoom":6,"filter":["==",["get","class"],"town"],"layout":{"icon-allow-overlap":true,"icon-image":["step",["zoom"],"circle_11_black",10,""],"icon-optional":false,"icon-size":0.2,"text-anchor":"bottom","text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Regular"],"text-max-width":8,"text-size":["interpolate",["exponential",1.2],["zoom"],7,12,11,14],"visibility":"none"},"paint":{"text-color":"#000","text-halo-blur":1,"text-halo-color":"#fff","text-halo-width":1}},{"id":"light-label_state","type":"symbol","source":"openmaptiles","source-layer":"place","minzoom":5,"maxzoom":8,"filter":["==",["get","class"],"state"],"layout":{"text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Italic"],"text-letter-spacing":0.2,"text-max-width":9,"text-size":["interpolate",["linear"],["zoom"],5,10,8,14],"text-transform":"uppercase","visibility":"none"},"paint":{"text-color":"#333","text-halo-blur":1,"text-halo-color":"#fff","text-halo-width":1}},{"id":"light-label_city","type":"symbol","source":"openmaptiles","source-layer":"place","minzoom":3,"filter":["all",["==",["get","class"],"city"],["!=",["get","capital"],2]],"layout":{"icon-allow-overlap":true,"icon-image":["step",["zoom"],"circle_11_black",9,""],"icon-optional":false,"icon-size":0.4,"text-anchor":"bottom","text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Regular"],"text-max-width":8,"text-offset":[0,-0.1],"text-size":["interpolate",["exponential",1.2],["zoom"],4,11,7,13,11,18],"visibility":"none"},"paint":{"text-color":"#000","text-halo-blur":1,"text-halo-color":"#fff","text-halo-width":1}},{"id":"light-label_city_capital","type":"symbol","source":"openmaptiles","source-layer":"place","minzoom":3,"filter":["all",["==",["get","class"],"city"],["==",["get","capital"],2]],"layout":{"icon-allow-overlap":true,"icon-image":["step",["zoom"],"circle_11_black",9,""],"icon-optional":false,"icon-size":0.5,"text-anchor":"bottom","text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Bold"],"text-max-width":8,"text-offset":[0,-0.2],"text-size":["interpolate",["exponential",1.2],["zoom"],4,12,7,14,11,20],"visibility":"none"},"paint":{"text-color":"#000","text-halo-blur":1,"text-halo-color":"#fff","text-halo-width":1}},{"id":"light-label_country_3","type":"symbol","source":"openmaptiles","source-layer":"place","minzoom":2,"maxzoom":9,"filter":["all",["==",["get","class"],"country"],[">=",["get","rank"],3]],"layout":{"text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Bold"],"text-max-width":6.25,"text-size":["interpolate",["linear"],["zoom"],3,9,7,17],"visibility":"none"},"paint":{"text-color":"#000","text-halo-blur":1,"text-halo-color":"#fff","text-halo-width":1}},{"id":"light-label_country_2","type":"symbol","source":"openmaptiles","source-layer":"place","maxzoom":9,"filter":["all",["==",["get","class"],"country"],["==",["get","rank"],2]],"layout":{"text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Bold"],"text-max-width":6.25,"text-size":["interpolate",["linear"],["zoom"],2,9,5,17],"visibility":"none"},"paint":{"text-color":"#000","text-halo-blur":1,"text-halo-color":"#fff","text-halo-width":1}},{"id":"light-label_country_1","type":"symbol","source":"openmaptiles","source-layer":"place","maxzoom":9,"filter":["all",["==",["get","class"],"country"],["==",["get","rank"],1]],"layout":{"text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Bold"],"text-max-width":6.25,"text-size":["interpolate",["linear"],["zoom"],1,9,4,17],"visibility":"none"},"paint":{"text-color":"#000","text-halo-blur":1,"text-halo-color":"#fff","text-halo-width":1}}]};
+const LEAN_MAP_STYLE = {"version":8,"glyphs":"https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf","sprite":"https://tiles.openfreemap.org/sprites/ofm_f384/ofm","sources":{"openmaptiles":{"type":"vector","url":"https://tiles.openfreemap.org/planet"},"alt-routes":{"type":"geojson","data":{"type":"FeatureCollection","features":[]}},"route-traveled":{"type":"geojson","data":{"type":"Feature","geometry":{"type":"LineString","coordinates":[]}}},"route-ahead":{"type":"geojson","data":{"type":"Feature","geometry":{"type":"LineString","coordinates":[]}}},"route-pins":{"type":"geojson","data":{"type":"FeatureCollection","features":[]}}},"layers":[{"id":"background","type":"background","paint":{"background-color":"#0b0e14"}},{"id":"water","type":"fill","source":"openmaptiles","source-layer":"water","filter":["all",["match",["geometry-type"],["MultiPolygon","Polygon"],true,false],["!=",["get","brunnel"],"tunnel"]],"paint":{"fill-antialias":false,"fill-color":"#0f213c"}},{"id":"landcover_wood","type":"fill","source":"openmaptiles","source-layer":"landcover","minzoom":10,"filter":["all",["match",["geometry-type"],["MultiPolygon","Polygon"],true,false],["==",["get","class"],"wood"]],"paint":{"fill-color":"#101e19","fill-opacity":["interpolate",["exponential",0.3],["zoom"],8,0,10,0.8,13,0.4],"fill-pattern":"wood-pattern","fill-translate":[0,0]}},{"id":"landuse_park","type":"fill","source":"openmaptiles","source-layer":"landuse","filter":["all",["match",["geometry-type"],["MultiPolygon","Polygon"],true,false],["==",["get","class"],"park"]],"paint":{"fill-color":"#101e19"}},{"id":"waterway","type":"line","source":"openmaptiles","source-layer":"waterway","filter":["match",["geometry-type"],["LineString","MultiLineString"],true,false],"paint":{"line-color":"#0f213c"}},{"id":"highway_path","type":"line","source":"openmaptiles","source-layer":"transportation","filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["==",["get","class"],"path"]],"layout":{"line-cap":"round","line-join":"round"},"paint":{"line-color":"#263246","line-dasharray":[1.5,1.5],"line-opacity":0.85,"line-width":["interpolate",["exponential",1.2],["zoom"],13,1,20,10]}},{"id":"highway_minor","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":8,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["match",["get","class"],["minor","service","track"],true,false]],"layout":{"line-cap":"round","line-join":"round"},"paint":{"line-color":"#283449","line-opacity":0.95,"line-width":["interpolate",["exponential",1.55],["zoom"],13,1.8,20,20]}},{"id":"highway_major_casing","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":11,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["match",["get","class"],["primary","secondary","tertiary","trunk"],true,false]],"layout":{"line-cap":"butt","line-join":"miter"},"paint":{"line-color":"#3b4c68","line-dasharray":[12,0],"line-width":["interpolate",["exponential",1.3],["zoom"],10,3,20,23]}},{"id":"highway_major_inner","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":11,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["match",["get","class"],["primary","secondary","tertiary","trunk"],true,false]],"layout":{"line-cap":"round","line-join":"round"},"paint":{"line-color":"#1e293b","line-width":["interpolate",["exponential",1.3],["zoom"],10,2,20,20]}},{"id":"highway_major_subtle","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":6,"maxzoom":11,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["match",["get","class"],["primary","secondary","tertiary","trunk"],true,false]],"layout":{"line-cap":"round","line-join":"round"},"paint":{"line-color":"#293548","line-width":["interpolate",["linear"],["zoom"],6,0,8,2]}},{"id":"highway_motorway_casing","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":6,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["==",["get","class"],"motorway"]],"layout":{"line-cap":"butt","line-join":"miter"},"paint":{"line-color":"#475569","line-dasharray":[2,0],"line-opacity":1,"line-width":["interpolate",["exponential",1.4],["zoom"],5.8,0,6,3,20,40]}},{"id":"highway_motorway_inner","type":"line","source":"openmaptiles","source-layer":"transportation","minzoom":6,"filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["==",["get","class"],"motorway"]],"layout":{"line-cap":"round","line-join":"round"},"paint":{"line-color":"#334155","line-width":["interpolate",["exponential",1.4],["zoom"],4,2,6,1.3,20,30]}},{"id":"alt-routes-line","type":"line","source":"alt-routes","layout":{"line-join":"round","line-cap":"round"},"paint":{"line-color":"#94a3b8","line-width":4,"line-opacity":0.28,"line-dasharray":[2,2]}},{"id":"route-traveled-line","type":"line","source":"route-traveled","layout":{"line-join":"round","line-cap":"round"},"paint":{"line-color":"#64748b","line-width":6,"line-opacity":0.55}},{"id":"route-ahead-glow","type":"line","source":"route-ahead","layout":{"line-join":"round","line-cap":"round"},"paint":{"line-color":"#3b82f6","line-width":14,"line-opacity":0.28,"line-blur":3}},{"id":"route-ahead-casing","type":"line","source":"route-ahead","layout":{"line-join":"round","line-cap":"round"},"paint":{"line-color":"#1d4ed8","line-width":9,"line-opacity":0.96}},{"id":"route-ahead-core","type":"line","source":"route-ahead","layout":{"line-join":"round","line-cap":"round"},"paint":{"line-color":"#60a5fa","line-width":5.5,"line-opacity":1.0}},{"id":"route-pins-circle","type":"circle","source":"route-pins","paint":{"circle-radius":["get","radius"],"circle-color":["get","color"],"circle-stroke-color":["get","stroke"],"circle-stroke-width":["get","strokeWidth"],"circle-pitch-alignment":"map"}},{"id":"highway_name_other","type":"symbol","source":"openmaptiles","source-layer":"transportation_name","filter":["all",["!=",["get","class"],"motorway"],["match",["geometry-type"],["LineString","MultiLineString"],true,false]],"layout":{"symbol-placement":"line","symbol-spacing":350,"text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"]," ",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Regular"],"text-max-angle":30,"text-pitch-alignment":"viewport","text-rotation-alignment":"map","text-size":10,"text-transform":"uppercase"},"paint":{"text-color":"#cbd5e1","text-halo-blur":0,"text-halo-color":"rgba(11, 14, 20, 0.92)","text-halo-width":1.6,"text-translate":[0,0]}},{"id":"highway_name_motorway","type":"symbol","source":"openmaptiles","source-layer":"transportation_name","filter":["all",["match",["geometry-type"],["LineString","MultiLineString"],true,false],["==",["get","class"],"motorway"]],"layout":{"symbol-placement":"line","symbol-spacing":350,"text-field":["to-string",["get","ref"]],"text-font":["Noto Sans Regular"],"text-pitch-alignment":"viewport","text-rotation-alignment":"viewport","text-size":10},"paint":{"text-color":"#cbd5e1","text-translate":[0,2],"text-halo-color":"rgba(11, 14, 20, 0.92)","text-halo-width":1.6}},{"id":"place_village","type":"symbol","source":"openmaptiles","source-layer":"place","maxzoom":14,"filter":["all",["match",["geometry-type"],["MultiPoint","Point"],true,false],["==",["get","class"],"village"]],"layout":{"icon-size":0.4,"text-anchor":"left","text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Regular"],"text-justify":"left","text-offset":[0.5,0.2],"text-size":10,"text-transform":"uppercase"},"paint":{"icon-opacity":0.7,"text-color":"#94a3b8","text-halo-blur":1,"text-halo-color":"rgba(11, 14, 20, 0.90)","text-halo-width":1.4}},{"id":"place_town","type":"symbol","source":"openmaptiles","source-layer":"place","maxzoom":15,"filter":["all",["match",["geometry-type"],["MultiPoint","Point"],true,false],["==",["get","class"],"town"]],"layout":{"icon-image":["step",["zoom"],"circle-11",9,""],"icon-size":0.4,"text-anchor":["step",["zoom"],"left",8,"center"],"text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Regular"],"text-justify":"left","text-offset":[0.5,0.2],"text-size":10,"text-transform":"uppercase"},"paint":{"icon-opacity":0.7,"text-color":"#94a3b8","text-halo-blur":1,"text-halo-color":"rgba(11, 14, 20, 0.90)","text-halo-width":1.4}},{"id":"place_city","type":"symbol","source":"openmaptiles","source-layer":"place","maxzoom":14,"filter":["all",["match",["geometry-type"],["MultiPoint","Point"],true,false],["==",["get","class"],"city"],[">",["get","rank"],3]],"layout":{"icon-image":["step",["zoom"],"circle-11",9,""],"icon-size":0.4,"text-anchor":["step",["zoom"],"left",8,"center"],"text-field":["case",["has","name:nonlatin"],["concat",["get","name:latin"],"\n",["get","name:nonlatin"]],["coalesce",["get","name_en"],["get","name"]]],"text-font":["Noto Sans Regular"],"text-justify":"left","text-offset":[0.5,0.2],"text-size":10,"text-transform":"uppercase"},"paint":{"icon-opacity":0.7,"text-color":"#94a3b8","text-halo-blur":1,"text-halo-color":"rgba(11, 14, 20, 0.90)","text-halo-width":1.4}}]};
+
+const THEME_PAINTS = {
+  dark: {
+    background: ["background-color", "#0b0e14"],
+    water: ["fill-color", "#0f213c"],
+    waterway: ["line-color", "#0f213c"],
+    landcover_wood: ["fill-color", "#101e19"],
+    landuse_park: ["fill-color", "#101e19"],
+    highway_path: ["line-color", "#263246"],
+    highway_minor: ["line-color", "#283449"],
+    highway_major_casing: ["line-color", "#3b4c68"],
+    highway_major_inner: ["line-color", "#1e293b"],
+    highway_major_subtle: ["line-color", "#293548"],
+    highway_motorway_casing: ["line-color", "#475569"],
+    highway_motorway_inner: ["line-color", "#334155"],
+    highway_name_other: ["text-color", "#cbd5e1", "text-halo-color", "rgba(11,14,20,0.92)"],
+    highway_name_motorway: ["text-color", "#cbd5e1", "text-halo-color", "rgba(11,14,20,0.92)"],
+    place_village: ["text-color", "#94a3b8", "text-halo-color", "rgba(11,14,20,0.90)"],
+    place_town: ["text-color", "#94a3b8", "text-halo-color", "rgba(11,14,20,0.90)"],
+    place_city: ["text-color", "#94a3b8", "text-halo-color", "rgba(11,14,20,0.90)"]
+  },
+  light: {
+    background: ["background-color", "#f1f5f9"],
+    water: ["fill-color", "#bae6fd"],
+    waterway: ["line-color", "#7dd3fc"],
+    landcover_wood: ["fill-color", "#dcfce7"],
+    landuse_park: ["fill-color", "#dcfce7"],
+    highway_path: ["line-color", "#cbd5e1"],
+    highway_minor: ["line-color", "#ffffff"],
+    highway_major_casing: ["line-color", "#cbd5e1"],
+    highway_major_inner: ["line-color", "#ffffff"],
+    highway_major_subtle: ["line-color", "#e2e8f0"],
+    highway_motorway_casing: ["line-color", "#94a3b8"],
+    highway_motorway_inner: ["line-color", "#fde047"],
+    highway_name_other: ["text-color", "#1e293b", "text-halo-color", "rgba(255,255,255,0.92)"],
+    highway_name_motorway: ["text-color", "#1e293b", "text-halo-color", "rgba(255,255,255,0.92)"],
+    place_village: ["text-color", "#334155", "text-halo-color", "rgba(255,255,255,0.90)"],
+    place_town: ["text-color", "#1e293b", "text-halo-color", "rgba(255,255,255,0.90)"],
+    place_city: ["text-color", "#0f172a", "text-halo-color", "rgba(255,255,255,0.90)"]
+  }
+};
 
 let NAV_DATA = null;
 let curRoute = "r1";
@@ -684,21 +813,24 @@ let lightTheme = false;
 
 let map = null;
 let userMarker = null;
-let turnMarker = null;
-let startMarker = null;
-let endMarker = null;
+let nextTurnLngLat = null;
 
 let followUser = false;
 let courseUp = true;
 let isDragging = false;
-let isEasing = false;
+let animToken = 0;
+let isAnimating = false;
 let routeSwitchBannerUntil = 0;
 
 let targetLngLat = null;
 let displayLngLat = null;
+let lastPuckLngLat = [0, 0];
 let prevMoveLatLon = null;
 let targetHeading = 0;
 let displayHeading = 0;
+let lastPuckHeading = -999;
+let lastNeedleDeg = -999;
+let lastCardinal = "";
 let targetZoom = 16.8;
 let displayZoom = 16.8;
 let compassHeading = null;
@@ -740,13 +872,6 @@ function calcBearing(lat1, lon1, lat2, lon2) {
   return (toDeg(Math.atan2(y, x)) + 360) % 360;
 }
 
-function offsetLngLatMeters(lng, lat, bearingDeg, meters) {
-  const brng = toRad(bearingDeg);
-  const dLat = (meters * Math.cos(brng)) / 111320;
-  const dLng = (meters * Math.sin(brng)) / (111320 * Math.max(0.2, Math.cos(toRad(lat))));
-  return [lng + dLng, lat + dLat];
-}
-
 function angleDiff(from, to) {
   return ((to - from + 540) % 360) - 180;
 }
@@ -759,22 +884,55 @@ function cardinalFromDeg(deg) {
   return dirs[Math.round(((deg % 360) + 360) % 360 / 45) % 8];
 }
 
+function isLandscapeMode() {
+  return window.innerWidth > window.innerHeight && window.innerHeight <= 560;
+}
+
+function getOverviewPadding() {
+  if (isLandscapeMode()) {
+    return { top: 24, bottom: 24, left: 320, right: 110 };
+  }
+  return { top: 195, bottom: 115, left: 34, right: 68 };
+}
+
+function getNavPadding() {
+  if (isLandscapeMode()) {
+    return courseUp
+      ? { top: 110, bottom: 16, left: 310, right: 96 }
+      : { top: 20, bottom: 20, left: 310, right: 96 };
+  }
+  return courseUp
+    ? { top: 220, bottom: 96, left: 0, right: 0 }
+    : { top: 150, bottom: 96, left: 0, right: 0 };
+}
+
+function runMapAnimation(fn, durationMs) {
+  const myToken = ++animToken;
+  isAnimating = true;
+  fn();
+  setTimeout(() => {
+    if (animToken === myToken) {
+      isAnimating = false;
+    }
+  }, durationMs + 30);
+}
+
 function createPuckElement() {
   const wrap = document.createElement("div");
   wrap.className = "nav-puck-wrap";
   wrap.innerHTML = `
-    <svg class="nav-puck-svg" viewBox="0 0 92 92">
+    <svg class="nav-puck-svg" viewBox="0 0 86 86">
       <defs>
         <radialGradient id="beamGrad" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.62"/>
-          <stop offset="65%" stop-color="#3b82f6" stop-opacity="0.22"/>
+          <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.58"/>
+          <stop offset="65%" stop-color="#3b82f6" stop-opacity="0.20"/>
           <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
         </radialGradient>
       </defs>
-      <path d="M46 46 L14 4 A46 46 0 0 1 78 4 Z" fill="url(#beamGrad)"/>
-      <circle cx="46" cy="46" r="20" fill="rgba(59, 130, 246, 0.30)"/>
-      <circle cx="46" cy="46" r="15" fill="#ffffff" stroke="#1e293b" stroke-width="1.5"/>
-      <path d="M46 33 L55 53.5 L46 48.5 L37 53.5 Z" fill="#2563eb"/>
+      <path d="M43 43 L13 4 A43 43 0 0 1 73 4 Z" fill="url(#beamGrad)"/>
+      <circle cx="43" cy="43" r="19" fill="rgba(59, 130, 246, 0.28)"/>
+      <circle cx="43" cy="43" r="14" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
+      <path d="M43 31 L51.5 50 L43 45.5 L34.5 50 Z" fill="#2563eb"/>
     </svg>`;
   return wrap;
 }
@@ -789,7 +947,7 @@ function initMap() {
 
   map = new maplibregl.Map({
     container: "map",
-    style: UNIFIED_MAP_STYLE,
+    style: LEAN_MAP_STYLE,
     center: [4.96, 52.175],
     zoom: 10.6,
     pitch: 0,
@@ -797,7 +955,7 @@ function initMap() {
     attributionControl: false,
     dragRotate: true,
     touchPitch: true,
-    maxPitch: 65,
+    maxPitch: 60,
     fadeDuration: 0
   });
 
@@ -815,21 +973,37 @@ function initMap() {
   };
 
   map.on("dragstart", onUserGestureStart);
+  map.on("zoomstart", onUserGestureStart);
   map.on("rotatestart", onUserGestureStart);
   map.on("pitchstart", onUserGestureStart);
   map.on("dragend", onUserGestureEnd);
+  map.on("zoomend", onUserGestureEnd);
   map.on("rotateend", onUserGestureEnd);
   map.on("pitchend", onUserGestureEnd);
 
   map.on("rotate", () => {
     const b = map.getBearing();
-    const needle = document.getElementById("compass-needle");
-    if (needle) {
-      needle.style.transform = `rotate(${-b}deg)`;
+    if (Math.abs(angleDiff(lastNeedleDeg, b)) >= 0.8) {
+      lastNeedleDeg = b;
+      const needle = document.getElementById("compass-needle");
+      if (needle) {
+        needle.style.transform = `rotate(${Math.round(-b)}deg)`;
+      }
     }
-    const lbl = document.getElementById("lbl-compass");
-    if (lbl) {
-      lbl.textContent = courseUp ? `3D · ${cardinalFromDeg(b)}` : "2D NOORD";
+    const card = courseUp ? `3D · ${cardinalFromDeg(b)}` : "2D NOORD";
+    if (card !== lastCardinal) {
+      lastCardinal = card;
+      const lbl = document.getElementById("lbl-compass");
+      if (lbl) lbl.textContent = card;
+    }
+  });
+
+  window.addEventListener("resize", () => {
+    if (!map) return;
+    if (followUser && displayLngLat) {
+      map.jumpTo({ padding: getNavPadding() });
+    } else if (!followUser && routeCoordsLngLat.length > 1) {
+      fitFullRoute(false);
     }
   });
 
@@ -844,7 +1018,7 @@ function initMap() {
     requestWakeLock();
   }, { once: true });
 
-  fetch("nav_routes.json?v=6")
+  fetch("nav_routes.json?v=7")
     .then(r => r.json())
     .then(data => {
       NAV_DATA = data;
@@ -856,17 +1030,39 @@ function initMap() {
     });
 }
 
-function setTurnMarkerAt(lon, lat) {
-  if (!map) return;
-  if (!turnMarker) {
-    const dotEl = document.createElement("div");
-    dotEl.className = "turn-target-dot";
-    turnMarker = new maplibregl.Marker({ element: dotEl })
-      .setLngLat([lon, lat])
-      .addTo(map);
-  } else {
-    turnMarker.setLngLat([lon, lat]);
+function updatePinsGeoJSON() {
+  if (!map || !routeCoordsLngLat.length) return;
+  const srcPins = map.getSource("route-pins");
+  if (!srcPins) return;
+
+  const features = [
+    {
+      type: "Feature",
+      properties: { radius: 6, color: "#10b981", stroke: "#ffffff", strokeWidth: 2.5 },
+      geometry: { type: "Point", coordinates: routeCoordsLngLat[0] }
+    },
+    {
+      type: "Feature",
+      properties: { radius: 6, color: "#ef4444", stroke: "#ffffff", strokeWidth: 2.5 },
+      geometry: { type: "Point", coordinates: routeCoordsLngLat[routeCoordsLngLat.length - 1] }
+    }
+  ];
+  if (nextTurnLngLat) {
+    features.push({
+      type: "Feature",
+      properties: { radius: 7, color: "#ffffff", stroke: "#3b82f6", strokeWidth: 3.5 },
+      geometry: { type: "Point", coordinates: nextTurnLngLat }
+    });
   }
+  srcPins.setData({ type: "FeatureCollection", features });
+}
+
+function setTurnMarkerAt(lon, lat) {
+  if (nextTurnLngLat && Math.abs(nextTurnLngLat[0] - lon) < 1e-6 && Math.abs(nextTurnLngLat[1] - lat) < 1e-6) {
+    return;
+  }
+  nextTurnLngLat = [lon, lat];
+  updatePinsGeoJSON();
 }
 
 function updateStaticRouteLayers() {
@@ -929,7 +1125,7 @@ function setDirection(dir) {
   curDir = dir;
   document.getElementById("dir-heen").classList.toggle("active", dir === "heen");
   document.getElementById("dir-terug").classList.toggle("active", dir === "terug");
-  routeSwitchBannerUntil = Date.now() + 2800;
+  routeSwitchBannerUntil = Date.now() + 2500;
   renderSelectedRoute(!followUser);
 }
 
@@ -938,7 +1134,7 @@ function setRoute(rKey) {
   ["r1", "r2", "r3"].forEach(k => {
     document.getElementById("rt-" + k).classList.toggle("active", k === rKey);
   });
-  routeSwitchBannerUntil = Date.now() + 2800;
+  routeSwitchBannerUntil = Date.now() + 2500;
   renderSelectedRoute(!followUser);
 }
 
@@ -951,6 +1147,12 @@ function renderSelectedRoute(shouldFitBounds) {
   const gmapsBtn = document.getElementById("btn-gmaps");
   if (gmapsBtn) {
     gmapsBtn.href = curDir === "heen" ? routeObj.gmaps_heen : routeObj.gmaps_terug;
+  }
+  const gpxBtn = document.getElementById("btn-gpx");
+  if (gpxBtn) {
+    const gpxFile = `${curRoute}_${curDir}.gpx`;
+    gpxBtn.href = `gpx/${gpxFile}`;
+    gpxBtn.setAttribute("download", gpxFile);
   }
 
   routeCoordsLatLon = rData.coords || [];
@@ -993,37 +1195,19 @@ function renderSelectedRoute(shouldFitBounds) {
     displayHeading = targetHeading;
   }
 
+  if (steps.length > 1) {
+    nextTurnLngLat = [steps[1].lon, steps[1].lat];
+  } else if (steps.length === 1) {
+    nextTurnLngLat = [steps[0].lon, steps[0].lat];
+  }
+
   updateHudForSelectedRoute(routeObj, rData);
   updateStaticRouteLayers();
   updateRouteProgressGeoJSON(true);
+  updatePinsGeoJSON();
 
-  if (steps.length > 1) {
-    setTurnMarkerAt(steps[1].lon, steps[1].lat);
-  } else if (steps.length === 1) {
-    setTurnMarkerAt(steps[0].lon, steps[0].lat);
-  }
-
-  if (map && routeCoordsLngLat.length > 1) {
-    if (startMarker) startMarker.remove();
-    if (endMarker) endMarker.remove();
-
-    const startEl = document.createElement("div");
-    startEl.className = "endpoint-pin";
-    startEl.style.background = "#10b981";
-    startMarker = new maplibregl.Marker({ element: startEl })
-      .setLngLat(routeCoordsLngLat[0])
-      .addTo(map);
-
-    const endEl = document.createElement("div");
-    endEl.className = "endpoint-pin";
-    endEl.style.background = "#ef4444";
-    endMarker = new maplibregl.Marker({ element: endEl })
-      .setLngLat(routeCoordsLngLat[routeCoordsLngLat.length - 1])
-      .addTo(map);
-
-    if (shouldFitBounds) {
-      fitFullRoute(false);
-    }
+  if (map && routeCoordsLngLat.length > 1 && shouldFitBounds) {
+    fitFullRoute(false);
   }
 
   if (targetLngLat && followUser) {
@@ -1049,7 +1233,7 @@ function updateHudForSelectedRoute(routeObj, rData) {
   document.getElementById("turn-tag").textContent = `${meta.short} · ${curDir.toUpperCase()}`;
   document.getElementById("turn-street").textContent = routeObj.title;
   document.getElementById("turn-meta").textContent = `${dirLabel} · ${meta.lights} · ~${mins} min`;
-  document.getElementById("turn-icon").innerHTML = getTurnSvg("straight", "depart", 30);
+  document.getElementById("turn-icon").innerHTML = getTurnSvg("straight", "depart", 28);
   document.getElementById("then-banner").classList.remove("visible");
 }
 
@@ -1063,15 +1247,19 @@ function fitFullRoute(userClickedOverview = true) {
     }
   }
   const bounds = new maplibregl.LngLatBounds(routeCoordsLngLat[0], routeCoordsLngLat[0]);
-  for (const pt of routeCoordsLngLat) bounds.extend(pt);
-  isEasing = true;
-  map.fitBounds(bounds, {
-    padding: { top: 205, bottom: 125, left: 38, right: 74 },
-    pitch: 0,
-    bearing: 0,
-    duration: 600
-  });
-  setTimeout(() => { isEasing = false; }, 630);
+  for (let i = 0; i < routeCoordsLngLat.length; i += 3) {
+    bounds.extend(routeCoordsLngLat[i]);
+  }
+  bounds.extend(routeCoordsLngLat[routeCoordsLngLat.length - 1]);
+
+  runMapAnimation(() => {
+    map.fitBounds(bounds, {
+      padding: getOverviewPadding(),
+      pitch: 0,
+      bearing: 0,
+      duration: 500
+    });
+  }, 500);
 }
 
 function engageNavigation() {
@@ -1083,34 +1271,30 @@ function engageNavigation() {
 
   if (targetLngLat && map) {
     processLocationUpdate(targetLngLat[1], targetLngLat[0], lastSpeedMps, gpsHeading);
-    const camCenter = courseUp
-      ? offsetLngLatMeters(targetLngLat[0], targetLngLat[1], displayHeading, 42)
-      : targetLngLat;
-    isEasing = true;
-    map.easeTo({
-      center: camCenter,
-      zoom: courseUp ? displayZoom : 15.6,
-      pitch: courseUp ? 56 : 0,
-      bearing: courseUp ? displayHeading : 0,
-      duration: 550
-    });
-    setTimeout(() => { isEasing = false; }, 580);
+    runMapAnimation(() => {
+      map.easeTo({
+        center: targetLngLat,
+        zoom: courseUp ? displayZoom : 15.6,
+        pitch: courseUp ? 54 : 0,
+        bearing: courseUp ? displayHeading : 0,
+        padding: getNavPadding(),
+        duration: 480
+      });
+    }, 480);
   } else if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(pos => {
       onGpsPos(pos);
       if (targetLngLat && map) {
-        const camCenter = courseUp
-          ? offsetLngLatMeters(targetLngLat[0], targetLngLat[1], displayHeading, 42)
-          : targetLngLat;
-        isEasing = true;
-        map.easeTo({
-          center: camCenter,
-          zoom: courseUp ? displayZoom : 15.6,
-          pitch: courseUp ? 56 : 0,
-          bearing: courseUp ? displayHeading : 0,
-          duration: 550
-        });
-        setTimeout(() => { isEasing = false; }, 580);
+        runMapAnimation(() => {
+          map.easeTo({
+            center: targetLngLat,
+            zoom: courseUp ? displayZoom : 15.6,
+            pitch: courseUp ? 54 : 0,
+            bearing: courseUp ? displayHeading : 0,
+            padding: getNavPadding(),
+            duration: 480
+          });
+        }, 480);
       }
     }, onGpsErr, {
       enableHighAccuracy: true,
@@ -1126,33 +1310,30 @@ function toggleCourseUp() {
   followUser = true;
   updateControlStates();
 
-  const rawCenter = targetLngLat || (routeCoordsLngLat.length ? routeCoordsLngLat[0] : [4.82693, 52.28640]);
-  const camCenter = courseUp
-    ? offsetLngLatMeters(rawCenter[0], rawCenter[1], displayHeading, 42)
-    : rawCenter;
+  const centerPt = targetLngLat || (routeCoordsLngLat.length ? routeCoordsLngLat[0] : [4.82693, 52.28640]);
   if (map) {
-    isEasing = true;
-    map.easeTo({
-      center: camCenter,
-      zoom: courseUp ? displayZoom : 15.4,
-      pitch: courseUp ? 56 : 0,
-      bearing: courseUp ? displayHeading : 0,
-      duration: 500
-    });
-    setTimeout(() => { isEasing = false; }, 530);
+    runMapAnimation(() => {
+      map.easeTo({
+        center: centerPt,
+        zoom: courseUp ? displayZoom : 15.4,
+        pitch: courseUp ? 54 : 0,
+        bearing: courseUp ? displayHeading : 0,
+        padding: getNavPadding(),
+        duration: 420
+      });
+    }, 420);
   }
 }
 
 function toggleMapTheme() {
   lightTheme = !lightTheme;
   if (map) {
-    const layers = map.getStyle().layers || [];
-    for (let i = 0; i < layers.length; i++) {
-      const id = layers[i].id;
-      if (id.startsWith("dark-")) {
-        map.setLayoutProperty(id, "visibility", lightTheme ? "none" : "visible");
-      } else if (id.startsWith("light-")) {
-        map.setLayoutProperty(id, "visibility", lightTheme ? "visible" : "none");
+    const scheme = lightTheme ? THEME_PAINTS.light : THEME_PAINTS.dark;
+    for (const [layerId, props] of Object.entries(scheme)) {
+      if (map.getLayer(layerId)) {
+        for (let i = 0; i < props.length; i += 2) {
+          map.setPaintProperty(layerId, props[i], props[i + 1]);
+        }
       }
     }
   }
@@ -1224,10 +1405,12 @@ function onDeviceOrientation(e) {
   if (hdg === null) return;
 
   const cleanHdg = (hdg + 360) % 360;
+  if (compassHeading !== null && Math.abs(angleDiff(compassHeading, cleanHdg)) < 1.5) {
+    return;
+  }
   compassHeading = compassHeading === null ? cleanHdg : lerpAngle(compassHeading, cleanHdg, 0.22);
   compassGranted = true;
 
-  // Below walking speed (1.8 m/s = 6.5 km/h), update heading smoothly from low-pass filtered compass
   if (lastSpeedMps < 1.8 && gpsHeading === null) {
     targetHeading = compassHeading;
   }
@@ -1236,11 +1419,12 @@ function onDeviceOrientation(e) {
 function cameraLoop(now) {
   const dt = Math.min(0.1, Math.max(0.004, (now - lastFrameTime) / 1000));
   lastFrameTime = now;
-  const alphaPos = 1 - Math.exp(-dt * 10.5);
-  const alphaHdg = 1 - Math.exp(-dt * 9.0);
-  const alphaZoom = 1 - Math.exp(-dt * 3.5);
 
   if (targetLngLat) {
+    const alphaPos = 1 - Math.exp(-dt * 10.0);
+    const alphaHdg = 1 - Math.exp(-dt * 8.5);
+    const alphaZoom = 1 - Math.exp(-dt * 3.5);
+
     if (!displayLngLat) {
       displayLngLat = [targetLngLat[0], targetLngLat[1]];
     } else {
@@ -1251,30 +1435,36 @@ function cameraLoop(now) {
     displayHeading = lerpAngle(displayHeading, targetHeading, alphaHdg);
     displayZoom += (targetZoom - displayZoom) * alphaZoom;
 
-    if (userMarker) {
-      userMarker.setLngLat(displayLngLat);
-      userMarker.setRotation(displayHeading);
+    const posChanged = Math.abs(displayLngLat[0] - lastPuckLngLat[0]) > 5e-7 ||
+                       Math.abs(displayLngLat[1] - lastPuckLngLat[1]) > 5e-7;
+    const hdgChanged = Math.abs(angleDiff(lastPuckHeading, displayHeading)) > 0.35;
+
+    if (userMarker && (posChanged || hdgChanged)) {
+      if (posChanged) {
+        userMarker.setLngLat(displayLngLat);
+        lastPuckLngLat[0] = displayLngLat[0];
+        lastPuckLngLat[1] = displayLngLat[1];
+      }
+      if (hdgChanged) {
+        userMarker.setRotation(displayHeading);
+        lastPuckHeading = displayHeading;
+      }
     }
 
-    if (followUser && !isDragging && !isEasing && map) {
-      // Offset camera ahead of rider in 3D Course-Up mode so rider puck sits in lower 1/3 of screen
-      const lookAheadMeters = courseUp ? 42 : 0;
-      const camCenter = courseUp
-        ? offsetLngLatMeters(displayLngLat[0], displayLngLat[1], displayHeading, lookAheadMeters)
-        : displayLngLat;
-
+    if (followUser && !isDragging && !isAnimating && map && (posChanged || hdgChanged)) {
       map.jumpTo({
-        center: camCenter,
+        center: displayLngLat,
         zoom: courseUp ? displayZoom : map.getZoom(),
         bearing: courseUp ? displayHeading : 0,
-        pitch: courseUp ? 56 : 0
+        pitch: courseUp ? 54 : 0,
+        padding: getNavPadding()
       });
     }
   }
   requestAnimationFrame(cameraLoop);
 }
 
-function getTurnSvg(mod, type, size = 30) {
+function getTurnSvg(mod, type, size = 28) {
   const m = mod || "";
   const t = type || "";
   let path = `<path d="M12 19V5M5 12l7-7 7 7"/>`;
@@ -1342,7 +1532,7 @@ function setManeuverUI(step, nextStep, distToStep, gapToNext, routeTitle) {
   document.getElementById("turn-tag").textContent = `${getActionTag(step)} · ${meta.short}`;
   document.getElementById("turn-street").textContent = formatStepDutch(step);
   document.getElementById("turn-meta").textContent = `${routeTitle} · ${meta.lights}`;
-  document.getElementById("turn-icon").innerHTML = getTurnSvg(step.mod || "", step.type || "", 30);
+  document.getElementById("turn-icon").innerHTML = getTurnSvg(step.mod || "", step.type || "", 28);
 
   const card = document.getElementById("maneuver-card");
   card.classList.toggle("imminent", distToStep <= 140);
@@ -1350,7 +1540,7 @@ function setManeuverUI(step, nextStep, distToStep, gapToNext, routeTitle) {
   const thenBanner = document.getElementById("then-banner");
   if (nextStep && distToStep <= 500 && gapToNext <= 450) {
     thenBanner.classList.add("visible");
-    document.getElementById("then-icon").innerHTML = getTurnSvg(nextStep.mod || "", nextStep.type || "", 15);
+    document.getElementById("then-icon").innerHTML = getTurnSvg(nextStep.mod || "", nextStep.type || "", 14);
     document.getElementById("then-text").textContent = formatStepDutch(nextStep);
   } else {
     thenBanner.classList.remove("visible");
@@ -1378,7 +1568,6 @@ function onGpsPos(pos) {
   const isFirst = (targetLngLat === null);
   lastSpeedMps = spdMps;
 
-  // Derive true GPS movement course from hardware heading or position delta (>= 3.5m)
   if (hdg !== null && !isNaN(hdg) && spdMps >= 1.8) {
     gpsHeading = (hdg + 360) % 360;
     prevMoveLatLon = [lat, lon];
@@ -1414,7 +1603,6 @@ function onGpsPos(pos) {
   const kmh = Math.max(0, Math.round(spdMps * 3.6));
   document.getElementById("speed-val").textContent = kmh;
 
-  // Speed-adaptive zoom: closer in town (17.0), wider lookahead at 55 km/h (16.15)
   if (kmh >= 42) {
     targetZoom = 16.15;
   } else if (kmh >= 22) {
@@ -1449,13 +1637,25 @@ function processLocationUpdate(lat, lon, spdMps, hdg) {
   const rData = routeObj[curDir];
   const kmh = Math.max(0, Math.round(spdMps * 3.6));
 
-  let bestIdx = 0;
+  // Fast windowed search around currentSplitIdx first, fallback to full scan only if > 75m away
+  let bestIdx = currentSplitIdx;
   let bestDist = Infinity;
-  for (let i = 0; i < routeCoordsLatLon.length; i++) {
+  const winStart = Math.max(0, currentSplitIdx - 15);
+  const winEnd = Math.min(routeCoordsLatLon.length, currentSplitIdx + 90);
+  for (let i = winStart; i < winEnd; i++) {
     const d = haversine(lat, lon, routeCoordsLatLon[i][0], routeCoordsLatLon[i][1]);
     if (d < bestDist) {
       bestDist = d;
       bestIdx = i;
+    }
+  }
+  if (bestDist > 75) {
+    for (let i = 0; i < routeCoordsLatLon.length; i++) {
+      const d = haversine(lat, lon, routeCoordsLatLon[i][0], routeCoordsLatLon[i][1]);
+      if (d < bestDist) {
+        bestDist = d;
+        bestIdx = i;
+      }
     }
   }
 
@@ -1466,7 +1666,6 @@ function processLocationUpdate(lat, lon, spdMps, hdg) {
   }
   updateRouteProgressGeoJSON(false);
 
-  // Compute physical 28-meter road lookahead bearing along the route polyline
   let roadBearing = targetHeading;
   if (currentSplitIdx < routeCoordsLatLon.length - 1) {
     const curM = cumDist[currentSplitIdx] || 0;
@@ -1481,7 +1680,6 @@ function processLocationUpdate(lat, lon, spdMps, hdg) {
     );
   }
 
-  // Fuse GPS movement course, 28m road tangent lookahead, and filtered magnetic compass
   if (spdMps >= 1.8 && hdg !== null && !isNaN(hdg)) {
     const alignedWithRoute = bestDist < 38 && Math.abs(angleDiff(hdg, roadBearing)) < 65;
     targetHeading = alignedWithRoute ? lerpAngle(hdg, roadBearing, 0.38) : hdg;
